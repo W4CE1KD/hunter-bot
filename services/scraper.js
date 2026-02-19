@@ -6,27 +6,33 @@ async function getTHMProfile(username) {
     const { data } = await axios.get(
       `https://tryhackme.com/p/${username}`,
       {
-        headers: { "User-Agent": "Mozilla/5.0" }
+        headers: {
+          "User-Agent": "Mozilla/5.0"
+        }
       }
     );
 
     const $ = cheerio.load(data);
 
-    const pageText = $("body").text();
+    // 🔥 avatar selector (stable)
+    const avatar =
+      $('img[alt="User avatar"]').first().attr("src") || "";
 
-    if (!pageText.includes(username)) return null;
-
-    let avatar = $("img").first().attr("src") || "";
-
-    // fallback points (THM hides real points)
+    // 🔥 TryHackMe hides real points
+    // using rank number as fallback
     let points = 1000;
-    const rankMatch = pageText.match(/Rank\s*(\d+)/i);
+
+    const bodyText = $("body").text();
+    const rankMatch = bodyText.match(/Rank\s*(\d+)/i);
 
     if (rankMatch) {
       points = parseInt(rankMatch[1]);
     }
 
-    return { points, avatar };
+    return {
+      points,
+      avatar
+    };
 
   } catch (err) {
     console.log("Scraper error:", err.message);

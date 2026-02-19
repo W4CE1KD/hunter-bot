@@ -148,7 +148,7 @@ async function generateCard(user) {
 
   // ── CONTENT FIELDS ────────────────────────────────────────────────────────
   divider(200);
-  inlineField("Name : ", `[${user.thmUsername}]`, contentX, 270, 56);
+  inlineField("Name : ", ${user.thmUsername}, contentX, 270, 56);
 
   divider(298);
   inlineField("Category : ", category, contentX, 358, 48);

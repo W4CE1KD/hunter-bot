@@ -1,94 +1,83 @@
-const { createCanvas, loadImage, registerFont } = require("canvas");
+const { createCanvas, loadImage } = require("canvas");
 const path = require("path");
 
-registerFont(path.join(__dirname, "../fonts/Roboto-Bold.ttf"), {
-  family: "RobotoBold",
-});
-
-function getRank(points) {
-  if (points >= 150000) return "S";
-  if (points >= 100000) return "A";
-  if (points >= 50000) return "B";
-  if (points >= 20000) return "C";
-  return "D";
-}
-
-async function generateCard(user) {
+module.exports = async function generateCard(user) {
   const width = 1280;
   const height = 720;
 
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
+  // ===== LOAD TEMPLATE =====
   const template = await loadImage(
     path.join(__dirname, "../assets/license-template.png")
   );
-
   ctx.drawImage(template, 0, 0, width, height);
 
-  // ===== AVATAR =====
-  try {
-    const avatar = await loadImage(user.avatar);
-    ctx.drawImage(avatar, 80, 145, 250, 300);
-  } catch {}
+  // ===== LOAD AVATAR =====
+  const avatar = await loadImage(user.avatar);
 
-  const licenseNo = String(user.points).padStart(10, "0");
-  const rank = getRank(user.points);
+  // Avatar position
+  const avatarX = 115;
+  const avatarY = 170;
+  const avatarSize = 240;
 
+  // Avatar border
+  ctx.strokeStyle = "#5a6f87";
+  ctx.lineWidth = 6;
+  ctx.strokeRect(avatarX - 5, avatarY - 5, avatarSize + 10, avatarSize + 10);
+
+  ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
+
+  // ===== TEXT STYLE =====
   ctx.fillStyle = "#111";
-  ctx.strokeStyle = "#9aa3af";
-  ctx.lineWidth = 3;
+  ctx.font = "bold 52px Arial";
 
-  // ===== LICENSE =====
-  ctx.font = "bold 48px RobotoBold";
-  ctx.fillText("License No.", 460, 170);
+  // License
+  ctx.fillText("License No.", 520, 190);
+  ctx.font = "bold 50px Arial";
+  ctx.fillStyle = "#000";
+  ctx.fillText(user.license, 520, 240);
 
-  ctx.strokeRect(460, 185, 330, 58);
+  // ===== RANK (moved UP + color) =====
+  ctx.font = "bold 58px Arial";
+  ctx.fillStyle = "#111";
+  ctx.fillText(`Rank : [${user.rank}]`, 820, 215);
 
-  ctx.font = "bold 52px RobotoBold";
-  ctx.fillText(licenseNo, 475, 230);
-
-  // ===== RANK (NO BOX) =====
-  ctx.font = "bold 56px RobotoBold";
-  ctx.fillText(`Rank : [${rank}]`, 830, 225);
-
-  // ===== NAME (NO BOX) =====
-  ctx.font = "bold 56px RobotoBold";
-  ctx.fillText(`Name : [${user.thmUsername}]`, 460, 330);
+  // ===== NAME =====
+  ctx.fillStyle = "#111";
+  ctx.font = "bold 58px Arial";
+  ctx.fillText(`Name : [${user.name}]`, 520, 335);
 
   // ===== CATEGORY =====
-  ctx.font = "bold 52px RobotoBold";
-  ctx.fillText("Category", 460, 400);
+  ctx.font = "bold 54px Arial";
+  ctx.fillText("Category", 520, 420);
 
-  // ===== CATEGORY GRID (2 COLUMNS ONLY) =====
-  const startX = 460;
-  const startY = 420;
-  const boxW = 250;
-  const boxH = 45;
-  const gap = 25;
+  // Category boxes (2x2)
+  const startX = 520;
+  const startY = 445;
+  const boxW = 230;
+  const boxH = 52;
+  const gap = 22;
+
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#9aa8b5";
 
   for (let row = 0; row < 2; row++) {
     for (let col = 0; col < 2; col++) {
       ctx.strokeRect(
         startX + col * (boxW + gap),
-        startY + row * (boxH + 12),
+        startY + row * (boxH + 16),
         boxW,
         boxH
       );
     }
   }
 
-  // HACKER TEXT (FIRST BOX)
-  ctx.font = "bold 40px RobotoBold";
-  const txt = "Hacker";
+  // Hacker text (colorized)
+  ctx.fillStyle = "#0b1a2f";
+  ctx.font = "bold 44px Arial";
+  ctx.fillText("Hacker", startX + 45, startY + 38);
 
-  const tw = ctx.measureText(txt).width;
-  const tx = startX + (boxW - tw) / 2;
-  const ty = startY + boxH / 2 + 14;
-
-  ctx.fillText(txt, tx, ty);
-
-  return canvas.toBuffer("image/png");
-}
-
-module.exports = { generateCard };
+  return canvas.toBuffer();
+};

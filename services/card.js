@@ -24,7 +24,6 @@ function getRankColor(rank) {
   }
 }
 
-// ── Default team info (same for everyone) ────────────────────────────────────
 const DEFAULT_TEAM = "morvax60";
 const DEFAULT_CTFS = "10";
 
@@ -34,13 +33,11 @@ async function generateCard(user) {
   const canvas = createCanvas(width, height);
   const ctx    = canvas.getContext("2d");
 
-  // Background template
   const template = await loadImage(
     path.join(__dirname, "../assets/license-template.png")
   );
   ctx.drawImage(template, 0, 0, width, height);
 
-  // Avatar
   try {
     const avatar = await loadImage(user.avatar);
     ctx.drawImage(avatar, 80, 145, 250, 300);
@@ -50,7 +47,6 @@ async function generateCard(user) {
   const rank      = getRank(user.points);
   const color     = getRankColor(rank);
 
-  // helper: "Label : " black + value in rank color
   function inlineField(label, value, x, y, fontSize = 52) {
     ctx.font      = `bold ${fontSize}px RobotoBold`;
     ctx.fillStyle = "#111";
@@ -60,21 +56,21 @@ async function generateCard(user) {
     ctx.fillText(value, x + lw, y);
   }
 
-  // ── RANK — top right corner (where red box is marked) ────────────────────
-  inlineField("Rank : ", `[ ${rank} ]`, 920, 115, 48);
+  // ── RANK — top right, moved down a bit ───────────────────────────────────
+  inlineField("Rank : ", `[ ${rank} ]`, 920, 145, 48);
 
   // ── LICENSE NO ───────────────────────────────────────────────────────────
-  inlineField("License No. : ", licenseNo, 460, 210, 52);
+  inlineField("License No. : ", licenseNo, 460, 220, 52);
 
   // ── NAME ─────────────────────────────────────────────────────────────────
   inlineField("Name : ", `[${user.thmUsername}]`, 460, 310, 56);
 
   // ── CATEGORY ─────────────────────────────────────────────────────────────
-  inlineField("Category : ", user.category || "Hacker", 460, 390, 48);
+  inlineField("Category : ", user.category || "Hacker", 460, 395, 48);
 
-  // ── TEAMNAME (left) + CTFs (right), same row ─────────────────────────────
-  inlineField("teamname : ", DEFAULT_TEAM, 460, 470, 44);
-  inlineField("ctfs : ", DEFAULT_CTFS, 850, 470, 44);
+  // ── TEAMNAME (left) + CTFs (right) — bigger gap ──────────────────────────
+  inlineField("teamname : ", DEFAULT_TEAM, 460, 475, 44);
+  inlineField("ctfs : ", DEFAULT_CTFS, 950, 475, 44);  // pushed further right
 
   return canvas.toBuffer("image/png");
 }

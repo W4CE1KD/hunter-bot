@@ -60,7 +60,7 @@ async function generateCard(user) {
   inlineField("Rank : ", `[ ${rank} ]`, 920, 145, 48);
 
   // ── LICENSE NO ───────────────────────────────────────────────────────────
-  inlineField("License No. : ", licenseNo, 460, 220, 52);
+  inlineField("License No : ", licenseNo, 460, 220, 52);
 
   // ── NAME ─────────────────────────────────────────────────────────────────
   inlineField("Name : ", `[${user.thmUsername}]`, 460, 310, 56);

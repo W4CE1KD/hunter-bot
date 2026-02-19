@@ -3,9 +3,8 @@ const axios = require("axios");
 async function getTHMProfile(username) {
   try {
 
-    // fetch profile page
     const { data } = await axios.get(
-      `https://tryhackme.com/p/${username}`,
+      `https://tryhackme.com/api/user/profile/${username}`,
       {
         headers: {
           "User-Agent": "Mozilla/5.0"
@@ -13,47 +12,15 @@ async function getTHMProfile(username) {
       }
     );
 
-    // ===============================
-    // Extract Next.js JSON data
-    // ===============================
-    const match = data.match(
-      /<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/
-    );
-
-    if (!match) {
-      console.log("THM JSON not found");
-      return null;
-    }
-
-    const json = JSON.parse(match[1]);
-
-    // ===============================
-    // Safe navigation (no crash)
-    // ===============================
-    const user =
-      json?.props?.pageProps?.user || null;
-
-    if (!user) {
-      console.log("User data not found");
-      return null;
-    }
-
-    // ===============================
-    // Extract values
-    // ===============================
-    const avatar = user.avatar || "";
-
-    // TryHackMe hides real points publicly,
-    // so we use rank as fallback value
-    const points = user.rank || 1000;
+    if (!data || !data.username) return null;
 
     return {
-      avatar,
-      points
+      avatar: data.avatar || "",
+      points: data.rank || 1000
     };
 
   } catch (err) {
-    console.log("Scraper error:", err.message);
+    console.log("THM API error:", err.message);
     return null;
   }
 }

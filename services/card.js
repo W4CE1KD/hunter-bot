@@ -1,13 +1,34 @@
 const { createCanvas, loadImage, registerFont } = require("canvas");
 const path = require("path");
 
-registerFont(path.join(__dirname, "../fonts/Roboto-Bold.ttf"), {
-  family: "RobotoBold",
-});
-registerFont(path.join(__dirname, "../fonts/Roboto-Regular.ttf"), {
-  family: "Roboto",
-});
+// Fonts
+registerFont(path.join(__dirname, "../fonts/Roboto-Bold.ttf"), { family: "RobotoBold" });
+registerFont(path.join(__dirname, "../fonts/Roboto-Regular.ttf"), { family: "Roboto" });
 
+// BG image (download Solo wallpaper and save locally)
+const BG_IMAGE_PATH = path.join(__dirname, "../assets/solo-bg.jpg");
+
+// Optional watermark logo (direct .png/.jpg URL or local path)
+const WATERMARK_LOGO = process.env.BG_LOGO_URL || "";
+const WATERMARK_OPACITY = 0.06;
+
+const DEFAULT_TEAM = "morvax60";
+const DEFAULT_CTFS = "10";
+
+// Theme (mid, premium)
+const C = {
+  white: "rgba(255,255,255,0.92)",
+  dim: "rgba(255,255,255,0.62)",
+  faint: "rgba(255,255,255,0.14)",
+  faint2: "rgba(255,255,255,0.08)",
+  panel: "rgba(8,10,16,0.68)",
+  panel2: "rgba(8,10,16,0.52)",
+  deep: "rgba(0,0,0,0.70)",
+};
+
+// ─────────────────────────────────────────
+// RANKING
+// ─────────────────────────────────────────
 function getRank(points) {
   if (points >= 150000) return "S";
   if (points >= 100000) return "A";
@@ -17,59 +38,30 @@ function getRank(points) {
   return "E";
 }
 
-function getRankColor(rank) {
-  // Muted cool accents for a polished dark UI.
-  switch (rank) {
-    case "S":
-      return "#A4B6CC";
-    case "A":
-      return "#95A8BE";
-    case "B":
-      return "#879AAF";
-    case "C":
-      return "#7A8CA0";
-    case "D":
-      return "#6E7F91";
-    default:
-      return "#647383";
-  }
-}
-
 function getCategory(rank) {
   switch (rank) {
-    case "S":
-      return "Monarch";
-    case "A":
-      return "Shadow Adept";
-    case "B":
-      return "Elite Hunter";
-    case "C":
-      return "Hunter";
-    case "D":
-      return "Rookie";
-    default:
-      return "Unawakened";
+    case "S": return "Monarch";
+    case "A": return "Shadow Adept";
+    case "B": return "Elite Hunter";
+    case "C": return "Hunter";
+    case "D": return "Rookie";
+    default:  return "Unawakened";
   }
 }
 
-const DEFAULT_TEAM = "-";
-const DEFAULT_CTFS = "-";
-
-function hexToRgba(hex, alpha = 1) {
-  const clean = hex.replace("#", "");
-  const value = clean.length === 3
-    ? clean
-      .split("")
-      .map((ch) => ch + ch)
-      .join("")
-    : clean;
-  const int = Number.parseInt(value, 16);
-  const r = (int >> 16) & 255;
-  const g = (int >> 8) & 255;
-  const b = int & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+// Minimal rank accent (still subtle)
+function getRankAccent(rank) {
+  switch (rank) {
+    case "S": return "rgba(255,255,255,0.95)";
+    case "A": return "rgba(255,255,255,0.92)";
+    case "B": return "rgba(255,255,255,0.86)";
+    default:  return "rgba(255,255,255,0.80)";
+  }
 }
 
+// ─────────────────────────────────────────
+// DRAW HELPERS
+// ─────────────────────────────────────────
 function roundRect(ctx, x, y, w, h, r) {
   const rr = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
@@ -85,7 +77,7 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-function fillRoundRect(ctx, x, y, w, h, r, fillStyle) {
+function fillR(ctx, x, y, w, h, r, fillStyle) {
   ctx.save();
   roundRect(ctx, x, y, w, h, r);
   ctx.fillStyle = fillStyle;
@@ -93,7 +85,7 @@ function fillRoundRect(ctx, x, y, w, h, r, fillStyle) {
   ctx.restore();
 }
 
-function strokeRoundRect(ctx, x, y, w, h, r, strokeStyle, lineWidth = 1) {
+function strokeR(ctx, x, y, w, h, r, strokeStyle, lineWidth = 1) {
   ctx.save();
   roundRect(ctx, x, y, w, h, r);
   ctx.strokeStyle = strokeStyle;
@@ -102,378 +94,309 @@ function strokeRoundRect(ctx, x, y, w, h, r, strokeStyle, lineWidth = 1) {
   ctx.restore();
 }
 
-function fitText(ctx, text, maxWidth, startSize, minSize, fontFamily, weight = "") {
+function drawImageCover(ctx, img, x, y, w, h) {
+  const iw = img.width;
+  const ih = img.height;
+  const scale = Math.max(w / iw, h / ih);
+  const sw = w / scale;
+  const sh = h / scale;
+  const sx = (iw - sw) / 2;
+  const sy = (ih - sh) / 2;
+  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+}
+
+function fitText(ctx, text, maxWidth, startSize, minSize, family, weight = "") {
+  const t = text == null ? "" : String(text);
   let size = startSize;
   while (size > minSize) {
-    ctx.font = `${weight}${weight ? " " : ""}${size}px ${fontFamily}`;
-    if (ctx.measureText(text).width <= maxWidth) return size;
+    ctx.font = `${weight}${weight ? " " : ""}${size}px ${family}`;
+    if (ctx.measureText(t).width <= maxWidth) return size;
     size -= 1;
   }
   return minSize;
 }
 
-function drawImageCover(ctx, image, x, y, w, h) {
-  const scale = Math.max(w / image.width, h / image.height);
-  const drawW = image.width * scale;
-  const drawH = image.height * scale;
-  const drawX = x + (w - drawW) / 2;
-  const drawY = y + (h - drawH) / 2;
-  ctx.drawImage(image, drawX, drawY, drawW, drawH);
+async function drawWatermark(ctx, w, h, urlOrPath, opacity = 0.06) {
+  if (!urlOrPath) return;
+  try {
+    const img = await loadImage(urlOrPath);
+    const targetW = w * 0.46;
+    const scale = targetW / img.width;
+    const dw = img.width * scale;
+    const dh = img.height * scale;
+    const x = (w - dw) / 2;
+    const y = (h - dh) / 2;
+
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.shadowColor = "rgba(0,0,0,0.9)";
+    ctx.shadowBlur = 18;
+    ctx.drawImage(img, x, y, dw, dh);
+    ctx.restore();
+  } catch {}
 }
 
-function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max);
-}
-
-function getImageProfile(image) {
-  const sampleSize = 24;
-  const sampleCanvas = createCanvas(sampleSize, sampleSize);
-  const sampleCtx = sampleCanvas.getContext("2d");
-  sampleCtx.drawImage(image, 0, 0, sampleSize, sampleSize);
-
-  const { data } = sampleCtx.getImageData(0, 0, sampleSize, sampleSize);
-  let totalLuminance = 0;
-  let totalSaturation = 0;
-  let pixels = 0;
-
-  for (let i = 0; i < data.length; i += 4) {
-    const alpha = data[i + 3] / 255;
-    if (alpha <= 0.02) continue;
-
-    const r = data[i] / 255;
-    const g = data[i + 1] / 255;
-    const b = data[i + 2] / 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    const saturation = max === 0 ? 0 : (max - min) / max;
-    const luminance = (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
-
-    totalSaturation += saturation;
-    totalLuminance += luminance;
-    pixels += 1;
-  }
-
-  if (pixels === 0) {
-    return {
-      saturation: 0.35,
-      luminance: 0.45,
-    };
-  }
-
-  return {
-    saturation: totalSaturation / pixels,
-    luminance: totalLuminance / pixels,
-  };
-}
-
-function drawAvatarBalanced(ctx, image, x, y, w, h, accent) {
-  const profile = getImageProfile(image);
-  const saturation = profile.saturation;
-  const luminance = profile.luminance;
-
-  // Normalize bright or highly saturated photos so they sit naturally in the dark UI.
-  const neutralAlpha = clamp(
-    0.05
-      + Math.max(0, saturation - 0.38) * 0.26
-      + Math.max(0, luminance - 0.66) * 0.20,
-    0.05,
-    0.21
-  );
-  const darkOverlayAlpha = clamp(
-    0.08
-      + Math.max(0, saturation - 0.42) * 0.18
-      + Math.max(0, luminance - 0.68) * 0.28,
-    0.08,
-    0.26
-  );
-  const liftAlpha = clamp((0.30 - luminance) * 0.22, 0, 0.06);
-  const accentBlendAlpha = clamp(0.05 + (saturation * 0.05), 0.05, 0.10);
-
+function drawNoise(ctx, w, h, amount = 5200) {
   ctx.save();
-  roundRect(ctx, x, y, w, h, 16);
-  ctx.clip();
-
-  drawImageCover(ctx, image, x, y, w, h);
-
-  const edgeVignette = ctx.createRadialGradient(
-    x + (w / 2),
-    y + (h / 2),
-    Math.min(w, h) * 0.22,
-    x + (w / 2),
-    y + (h / 2),
-    Math.max(w, h) * 0.72
-  );
-  edgeVignette.addColorStop(0, "rgba(0,0,0,0)");
-  edgeVignette.addColorStop(1, "rgba(0,0,0,0.50)");
-  ctx.fillStyle = edgeVignette;
-  ctx.fillRect(x, y, w, h);
-
-  const bottomShade = ctx.createLinearGradient(0, y, 0, y + h);
-  bottomShade.addColorStop(0, "rgba(0,0,0,0)");
-  bottomShade.addColorStop(0.62, "rgba(0,0,0,0)");
-  bottomShade.addColorStop(1, "rgba(0,0,0,0.44)");
-  ctx.fillStyle = bottomShade;
-  ctx.fillRect(x, y, w, h);
-
-  ctx.fillStyle = `rgba(0, 0, 0, ${neutralAlpha})`;
-  ctx.fillRect(x, y, w, h);
-
-  ctx.fillStyle = `rgba(0, 0, 0, ${darkOverlayAlpha})`;
-  ctx.fillRect(x, y, w, h);
-
-  if (liftAlpha > 0) {
-    ctx.fillStyle = `rgba(230, 236, 244, ${liftAlpha})`;
-    ctx.fillRect(x, y, w, h);
+  ctx.globalAlpha = 0.06;
+  for (let i = 0; i < amount; i++) {
+    const x = (Math.random() * w) | 0;
+    const y = (Math.random() * h) | 0;
+    const a = Math.random() * 0.7;
+    ctx.fillStyle = `rgba(0,0,0,${a})`;
+    ctx.fillRect(x, y, 1, 1);
   }
-
-  ctx.fillStyle = hexToRgba(accent, accentBlendAlpha);
-  ctx.fillRect(x, y, w, h);
-
   ctx.restore();
 }
 
-function drawDivider(ctx, x, y, w, strokeStyle = "rgba(92,120,150,0.30)") {
+function divider(ctx, x1, x2, y) {
   ctx.save();
-  ctx.strokeStyle = strokeStyle;
+  ctx.strokeStyle = C.faint2;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x + w, y);
+  ctx.moveTo(x1, y);
+  ctx.lineTo(x2, y);
   ctx.stroke();
   ctx.restore();
 }
 
-async function generateCard(user) {
-  const width = 1120;
-  const height = 620;
+function drawLabelValue(ctx, label, value, x, y, w) {
+  // label (small, bold)
+  ctx.font = "bold 12px RobotoBold";
+  ctx.fillStyle = C.dim;
+  ctx.fillText(label.toUpperCase(), x, y);
 
+  // value (normal)
+  const v = value == null ? "" : String(value);
+  const size = fitText(ctx, v, w, 34, 18, "Roboto", "");
+  ctx.font = `${size}px Roboto`;
+  ctx.fillStyle = C.white;
+  ctx.fillText(v, x, y + 34);
+}
+
+function drawAvatarPanel(ctx, x, y, w, h, avatarImg) {
+  // panel
+  fillR(ctx, x, y, w, h, 22, "rgba(255,255,255,0.04)");
+  strokeR(ctx, x, y, w, h, 22, C.faint, 1);
+
+  // inner frame
+  strokeR(ctx, x + 14, y + 14, w - 28, h - 28, 18, "rgba(255,255,255,0.24)", 1);
+
+  // draw avatar (cover)
+  const ax = x + 18;
+  const ay = y + 18;
+  const aw = w - 36;
+  const ah = h - 36;
+
+  ctx.save();
+  roundRect(ctx, ax, ay, aw, ah, 16);
+  ctx.clip();
+
+  if (avatarImg) {
+    // slight zoom to feel “OP”
+    const zoom = 1.06;
+    const zx = ax - (aw * (zoom - 1)) / 2;
+    const zy = ay - (ah * (zoom - 1)) / 2;
+    const zw = aw * zoom;
+    const zh = ah * zoom;
+    drawImageCover(ctx, avatarImg, zx, zy, zw, zh);
+  } else {
+    ctx.fillStyle = "rgba(0,0,0,0.35)";
+    ctx.fillRect(ax, ay, aw, ah);
+  }
+
+  // subtle vignette
+  const vign = ctx.createRadialGradient(ax + aw / 2, ay + ah / 2, aw * 0.2, ax + aw / 2, ay + ah / 2, aw * 0.85);
+  vign.addColorStop(0, "rgba(0,0,0,0)");
+  vign.addColorStop(1, "rgba(0,0,0,0.55)");
+  ctx.fillStyle = vign;
+  ctx.fillRect(ax, ay, aw, ah);
+
+  // top shine
+  const shine = ctx.createLinearGradient(ax, ay, ax, ay + ah * 0.55);
+  shine.addColorStop(0, "rgba(255,255,255,0.10)");
+  shine.addColorStop(1, "rgba(255,255,255,0.00)");
+  ctx.fillStyle = shine;
+  ctx.fillRect(ax, ay, aw, ah);
+
+  ctx.restore();
+}
+
+// ─────────────────────────────────────────
+// MAIN
+// ─────────────────────────────────────────
+async function generateCard(user) {
+  const width = 1220;
+  const height = 640;
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
   const points = user?.points ?? 0;
-  const rank = getRank(points);
-  const accent = getRankColor(rank);
-  const category = getCategory(rank);
   const licenseNo = String(points).padStart(10, "0");
+  const rank = getRank(points);
+  const category = getCategory(rank);
+  const rankAccent = getRankAccent(rank);
 
-  const name = user?.thmUsername ?? "Unknown";
-  const team = user?.team ?? DEFAULT_TEAM;
-  const ctf = user?.ctf ?? DEFAULT_CTFS;
+  // Load BG
+  let bgImg = null;
+  try { bgImg = await loadImage(BG_IMAGE_PATH); } catch { bgImg = null; }
 
-  const theme = {
-    black: "#000000",
-    line: "rgba(142,170,206,0.24)",
-    lineSoft: "rgba(142,170,206,0.14)",
-    textPrimary: "rgba(242,248,255,0.96)",
-    textSecondary: "rgba(175,194,217,0.72)",
-    textMuted: "rgba(126,146,170,0.60)",
-  };
+  if (bgImg) drawImageCover(ctx, bgImg, 0, 0, width, height);
+  else {
+    ctx.fillStyle = "#05060D";
+    ctx.fillRect(0, 0, width, height);
+  }
 
-  ctx.fillStyle = theme.black;
-  ctx.fillRect(0, 0, width, height);
-
-  const rightGlow = ctx.createRadialGradient(width * 0.90, height * 0.16, 0, width * 0.90, height * 0.16, 320);
-  rightGlow.addColorStop(0, hexToRgba(accent, 0.16));
-  rightGlow.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = rightGlow;
-  ctx.fillRect(0, 0, width, height);
-
-  const leftGlow = ctx.createRadialGradient(width * 0.10, height * 0.78, 0, width * 0.10, height * 0.78, 280);
-  leftGlow.addColorStop(0, hexToRgba(accent, 0.06));
-  leftGlow.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = leftGlow;
-  ctx.fillRect(0, 0, width, height);
-
-  const vignette = ctx.createRadialGradient(width / 2, height / 2, width * 0.28, width / 2, height / 2, width * 0.76);
-  vignette.addColorStop(0, "rgba(0,0,0,0)");
-  vignette.addColorStop(1, "rgba(0,0,0,0.72)");
-  ctx.fillStyle = vignette;
-  ctx.fillRect(0, 0, width, height);
-
-  const cardX = 20;
-  const cardY = 20;
-  const cardW = width - 40;
-  const cardH = height - 40;
-
+  // Dark overlay to unify colors
   ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.68)";
-  ctx.shadowBlur = 28;
-  ctx.shadowOffsetY = 8;
-  fillRoundRect(ctx, cardX, cardY, cardW, cardH, 28, theme.black);
+  const ov = ctx.createLinearGradient(0, 0, width, height);
+  ov.addColorStop(0, "rgba(0,0,0,0.80)");
+  ov.addColorStop(0.55, "rgba(0,0,0,0.62)");
+  ov.addColorStop(1, "rgba(0,0,0,0.82)");
+  ctx.fillStyle = ov;
+  ctx.fillRect(0, 0, width, height);
   ctx.restore();
 
-  strokeRoundRect(ctx, cardX, cardY, cardW, cardH, 28, theme.line, 1.1);
-  const topSheen = ctx.createLinearGradient(cardX, cardY, cardX, cardY + 150);
-  topSheen.addColorStop(0, "rgba(255,255,255,0.045)");
-  topSheen.addColorStop(1, "rgba(255,255,255,0)");
-  fillRoundRect(ctx, cardX + 1, cardY + 1, cardW - 2, 146, 26, topSheen);
+  // Watermark logo (optional)
+  await drawWatermark(ctx, width, height, WATERMARK_LOGO, WATERMARK_OPACITY);
 
-  const contentX = cardX + 36;
-  const headerY = cardY + 34;
-  const headerBottom = cardY + 126;
+  // Grain
+  drawNoise(ctx, width, height, 5200);
 
-  ctx.font = "bold 58px RobotoBold";
-  ctx.fillStyle = theme.textPrimary;
-  ctx.fillText("HUNTER LICENSE", contentX, headerY + 24);
+  // Main “dossier” shell (new style)
+  const shellX = 36, shellY = 36, shellW = width - 72, shellH = height - 72;
+  fillR(ctx, shellX, shellY, shellW, shellH, 28, "rgba(255,255,255,0.03)");
+  strokeR(ctx, shellX, shellY, shellW, shellH, 28, "rgba(255,255,255,0.16)", 1);
 
-  ctx.font = "27px Roboto";
-  ctx.fillStyle = theme.textSecondary;
-  ctx.fillText("Secure Identity Card", contentX, headerY + 62);
+  // Top bar (thin, modern)
+  const topX = shellX + 18;
+  const topY = shellY + 18;
+  const topW = shellW - 36;
+  const topH = 74;
 
-  ctx.font = "13px Roboto";
-  ctx.fillStyle = theme.textMuted;
-  ctx.fillText("Access Tier Credential / Zero Trust Network", contentX, headerY + 88);
+  fillR(ctx, topX, topY, topW, topH, 22, C.panel);
+  strokeR(ctx, topX, topY, topW, topH, 22, C.faint, 1);
 
-  const chipW = 84;
-  const chipH = 54;
-  const chipX = cardX + cardW - 36 - chipW;
-  const chipY = cardY + 36;
+  // Title
+  ctx.font = "bold 30px RobotoBold";
+  ctx.fillStyle = C.white;
+  ctx.fillText("HUNTER CARD", topX + 22, topY + 48);
 
-  fillRoundRect(ctx, chipX, chipY, chipW, chipH, 15, "rgba(8,12,18,0.58)");
-  strokeRoundRect(ctx, chipX, chipY, chipW, chipH, 15, hexToRgba(accent, 0.52), 1);
-  ctx.textAlign = "center";
-  ctx.font = "bold 32px RobotoBold";
-  ctx.fillStyle = accent;
-  ctx.fillText(rank, chipX + chipW / 2, chipY + 39);
-  ctx.textAlign = "left";
+  // Right: ID + Rank (new look)
+  const badgeH = 46;
+  const badgeY = topY + 14;
 
-  const licenseRight = chipX - 22;
-  ctx.textAlign = "right";
+  // Rank badge
+  const rankW = 92;
+  const rankX = topX + topW - rankW - 18;
+  fillR(ctx, rankX, badgeY, rankW, badgeH, 14, "rgba(0,0,0,0.70)");
+  strokeR(ctx, rankX, badgeY, rankW, badgeH, 14, C.faint, 1);
+
   ctx.font = "bold 11px RobotoBold";
-  ctx.fillStyle = theme.textSecondary;
-  ctx.fillText("LICENSE", licenseRight, chipY + 12);
-  const licenseSize = fitText(ctx, licenseNo, 270, 44, 26, "RobotoBold", "bold");
-  ctx.font = `bold ${licenseSize}px RobotoBold`;
-  ctx.fillStyle = theme.textPrimary;
-  ctx.fillText(licenseNo, licenseRight, chipY + 48);
-  ctx.textAlign = "left";
+  ctx.fillStyle = C.dim;
+  ctx.fillText("RANK", rankX + 14, badgeY + 18);
 
-  const rule = ctx.createLinearGradient(cardX + 24, 0, cardX + cardW - 24, 0);
-  rule.addColorStop(0, "rgba(142,170,206,0)");
-  rule.addColorStop(0.2, "rgba(142,170,206,0.30)");
-  rule.addColorStop(0.8, "rgba(142,170,206,0.30)");
-  rule.addColorStop(1, "rgba(142,170,206,0)");
-  drawDivider(ctx, cardX + 24, headerBottom, cardW - 48, rule);
+  ctx.font = "bold 26px RobotoBold";
+  ctx.fillStyle = rankAccent;
+  ctx.fillText(rank, rankX + 58, badgeY + 36);
 
-  const bodyY = headerBottom + 26;
-  const bodyH = cardY + cardH - bodyY - 24;
-  const leftX = cardX + 26;
-  const leftW = 280;
+  // ID badge
+  const idW = 210;
+  const idX = rankX - 12 - idW;
+  fillR(ctx, idX, badgeY, idW, badgeH, 14, "rgba(0,0,0,0.70)");
+  strokeR(ctx, idX, badgeY, idW, badgeH, 14, C.faint, 1);
 
-  const avatarX = leftX;
-  const avatarY = bodyY;
-  const avatarW = leftW;
-  const avatarH = avatarW;
+  ctx.font = "bold 11px RobotoBold";
+  ctx.fillStyle = C.dim;
+  ctx.fillText("ID", idX + 14, badgeY + 18);
 
-  fillRoundRect(ctx, avatarX, avatarY, avatarW, avatarH, 20, theme.black);
-  strokeRoundRect(ctx, avatarX, avatarY, avatarW, avatarH, 20, theme.lineSoft, 1);
+  ctx.font = "16px Roboto";
+  ctx.fillStyle = C.white;
+  ctx.fillText(licenseNo, idX + 14, badgeY + 36);
 
-  let avatarDrawn = false;
-  if (user?.avatar) {
-    try {
-      const avatar = await loadImage(user.avatar);
-      drawAvatarBalanced(ctx, avatar, avatarX + 12, avatarY + 12, avatarW - 24, avatarH - 24, accent);
-      avatarDrawn = true;
-    } catch {
-      avatarDrawn = false;
-    }
+  // Content area (NEW layout)
+  const contentX = shellX + 18;
+  const contentY = topY + topH + 16;
+  const contentW = shellW - 36;
+  const contentH = shellH - (topH + 18 + 16);
+
+  fillR(ctx, contentX, contentY, contentW, contentH, 26, C.panel2);
+  strokeR(ctx, contentX, contentY, contentW, contentH, 26, C.faint2, 1);
+
+  // Left: big avatar column (portrait)
+  const leftW = 430;
+  const leftX = contentX + 18;
+  const leftY = contentY + 18;
+  const leftH = contentH - 36;
+
+  // Load avatar once
+  let avatarImg = null;
+  try { avatarImg = await loadImage(user.avatar); } catch { avatarImg = null; }
+
+  drawAvatarPanel(ctx, leftX, leftY, leftW, leftH, avatarImg);
+
+  // Right: dossier rows
+  const rightX = leftX + leftW + 22;
+  const rightY = leftY;
+  const rightW = contentX + contentW - rightX - 18;
+  const rightH = leftH;
+
+  // Right panel
+  fillR(ctx, rightX, rightY, rightW, rightH, 22, "rgba(0,0,0,0.40)");
+  strokeR(ctx, rightX, rightY, rightW, rightH, 22, C.faint2, 1);
+
+  // Inner padding
+  const px = rightX + 26;
+  let cy = rightY + 28;
+  const rowW = rightW - 52;
+
+  // Row 1: NAME
+  drawLabelValue(ctx, "Name", user?.thmUsername ?? "Unknown", px, cy, rowW);
+  cy += 74;
+  divider(ctx, px, px + rowW, cy);
+  cy += 22;
+
+  // Row 2: CATEGORY
+  drawLabelValue(ctx, "Category", category, px, cy, rowW);
+  cy += 74;
+  divider(ctx, px, px + rowW, cy);
+  cy += 22;
+
+  // Row 3: TEAM + CTF (2 columns)
+  const colGap = 22;
+  const colW = (rowW - colGap) / 2;
+
+  drawLabelValue(ctx, "Team", DEFAULT_TEAM, px, cy, colW);
+  drawLabelValue(ctx, "CTF", DEFAULT_CTFS, px + colW + colGap, cy, colW);
+  cy += 74;
+  divider(ctx, px, px + rowW, cy);
+  cy += 22;
+
+  // Row 4: POWER (points) + progress line (subtle)
+  drawLabelValue(ctx, "Power", String(points), px, cy, rowW);
+  cy += 62;
+
+  // Progress bar (subtle)
+  const barX = px;
+  const barY = cy;
+  const barW = rowW;
+  const barH = 10;
+
+  fillR(ctx, barX, barY, barW, barH, 10, "rgba(255,255,255,0.08)");
+
+  // Fill percent towards next tier (nice touch, mid)
+  const tiers = [0, 10000, 20000, 50000, 100000, 150000];
+  let next = 150000, prev = 0;
+  for (let i = 0; i < tiers.length; i++) {
+    if (points < tiers[i]) { next = tiers[i]; prev = tiers[Math.max(0, i - 1)]; break; }
   }
+  const pct = next === prev ? 1 : Math.max(0, Math.min(1, (points - prev) / (next - prev)));
+  fillR(ctx, barX, barY, Math.max(10, barW * pct), barH, 10, "rgba(255,255,255,0.32)");
 
-  if (!avatarDrawn) {
-    const initials = (name.trim()[0] || "U").toUpperCase();
-    fillRoundRect(ctx, avatarX + 12, avatarY + 12, avatarW - 24, avatarH - 24, 16, theme.black);
-    ctx.textAlign = "center";
-    ctx.font = "bold 84px RobotoBold";
-    ctx.fillStyle = "rgba(236,240,247,0.56)";
-    ctx.fillText(initials, avatarX + avatarW / 2, avatarY + avatarH / 2 + 34);
-    ctx.textAlign = "left";
-  }
-
-  const profileY = avatarY + avatarH + 18;
-  ctx.font = "bold 12px RobotoBold";
-  ctx.fillStyle = theme.textSecondary;
-  ctx.fillText("PROFILE", avatarX + 4, profileY);
-
-  const avatarNameSize = fitText(ctx, name, leftW, 68, 28, "RobotoBold", "bold");
-  ctx.font = `bold ${avatarNameSize}px RobotoBold`;
-  ctx.fillStyle = theme.textPrimary;
-  ctx.fillText(name, avatarX + 4, profileY + 64);
-
-  ctx.font = "13px Roboto";
-  ctx.fillStyle = theme.textMuted;
-  ctx.fillText("THM USER", avatarX + 4, profileY + 90);
-
-  const infoX = leftX + leftW + 42;
-  const infoY = bodyY + 6;
-  const infoW = cardX + cardW - infoX - 30;
-
-  ctx.save();
-  ctx.globalAlpha = 0.07;
-  ctx.fillStyle = accent;
-  ctx.font = "bold 240px RobotoBold";
-  ctx.fillText(rank, infoX + infoW - 200, bodyY + bodyH - 18);
-  ctx.restore();
-
-  const sectionLabelX = infoX;
-  const sectionW = infoW;
-
-  const catLabelY = infoY + 10;
-  ctx.font = "bold 12px RobotoBold";
-  ctx.fillStyle = theme.textSecondary;
-  ctx.fillText("CATEGORY", sectionLabelX, catLabelY);
-
-  const categorySize = fitText(ctx, category, sectionW, 84, 30, "RobotoBold", "bold");
-  ctx.font = `bold ${categorySize}px RobotoBold`;
-  ctx.fillStyle = theme.textPrimary;
-  ctx.fillText(category, sectionLabelX, catLabelY + 84);
-
-  drawDivider(ctx, sectionLabelX, catLabelY + 108, sectionW, "rgba(142,170,206,0.20)");
-
-  const pointsLabelY = catLabelY + 134;
-  ctx.font = "bold 12px RobotoBold";
-  ctx.fillStyle = theme.textSecondary;
-  ctx.fillText("POINTS", sectionLabelX, pointsLabelY);
-
-  const pointsText = points.toLocaleString("en-US");
-  const pointsSize = fitText(ctx, pointsText, sectionW, 108, 44, "RobotoBold", "bold");
-  ctx.font = `bold ${pointsSize}px RobotoBold`;
-  ctx.fillStyle = theme.textPrimary;
-  ctx.fillText(pointsText, sectionLabelX, pointsLabelY + 98);
-
-  drawDivider(ctx, sectionLabelX, pointsLabelY + 122, sectionW, "rgba(142,170,206,0.20)");
-
-  const statsY = pointsLabelY + 152;
-  const midX = sectionLabelX + sectionW / 2;
-
-  ctx.save();
-  ctx.strokeStyle = "rgba(142,170,206,0.20)";
-  ctx.beginPath();
-  ctx.moveTo(midX, statsY + 10);
-  ctx.lineTo(midX, statsY + 88);
-  ctx.stroke();
-  ctx.restore();
-
-  ctx.font = "bold 12px RobotoBold";
-  ctx.fillStyle = theme.textSecondary;
-  ctx.fillText("TEAM", sectionLabelX, statsY + 14);
-  ctx.fillText("CTF", midX + 18, statsY + 14);
-
-  const teamText = team == null ? "-" : String(team);
-  const ctfText = ctf == null ? "-" : String(ctf);
-
-  const teamSize = fitText(ctx, teamText, sectionW / 2 - 20, 44, 18, "RobotoBold", "bold");
-  ctx.font = `bold ${teamSize}px RobotoBold`;
-  ctx.fillStyle = theme.textPrimary;
-  ctx.fillText(teamText, sectionLabelX, statsY + 84);
-
-  const ctfSize = fitText(ctx, ctfText, sectionW / 2 - 20, 44, 18, "RobotoBold", "bold");
-  ctx.font = `bold ${ctfSize}px RobotoBold`;
-  ctx.fillText(ctfText, midX + 18, statsY + 84);
-
-  ctx.font = "13px Roboto";
-  ctx.fillStyle = theme.textMuted;
-  ctx.fillText("Certified | Verified | Generated by rank-bot", cardX + 34, cardY + cardH - 18);
+  // Footer tiny text (minimal)
+  ctx.font = "12px Roboto";
+  ctx.fillStyle = C.dim;
+  ctx.fillText("STATUS: VERIFIED", leftX + 24, leftY + leftH - 22);
 
   return canvas.toBuffer("image/png");
 }

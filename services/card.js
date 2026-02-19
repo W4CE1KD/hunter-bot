@@ -1,14 +1,10 @@
 const { createCanvas, loadImage, registerFont } = require("canvas");
 const path = require("path");
-const fs = require("fs");
 
-// ===== REGISTER FONT =====
-registerFont(
-  path.join(__dirname, "../fonts/Roboto-Bold.ttf"),
-  { family: "Roboto" }
-);
+registerFont(path.join(__dirname, "../fonts/Roboto-Bold.ttf"), {
+  family: "RobotoBold",
+});
 
-// ===== RANK LOGIC =====
 function getRank(points) {
   if (points >= 150000) return "S";
   if (points >= 100000) return "A";
@@ -17,10 +13,9 @@ function getRank(points) {
   return "D";
 }
 
-// ===== MAIN CARD FUNCTION =====
 async function generateCard(user) {
-  const width = 1600;
-  const height = 900;
+  const width = 1280;
+  const height = 720;
 
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
@@ -29,55 +24,39 @@ async function generateCard(user) {
   const template = await loadImage(
     path.join(__dirname, "../assets/license-template.png")
   );
-
   ctx.drawImage(template, 0, 0, width, height);
 
-  ctx.textBaseline = "middle";
-  ctx.textAlign = "left";
-  ctx.fillStyle = "#111";
-
   // ===== AVATAR =====
-  let avatarPath = path.join(__dirname, "../assets/default-avatar.png");
+  try {
+    const avatar = await loadImage(user.avatar);
 
-  if (user.avatar && fs.existsSync(user.avatar)) {
-    avatarPath = user.avatar;
+    // avatar box position (LEFT BOX)
+    ctx.drawImage(avatar, 95, 170, 210, 260);
+  } catch (e) {
+    console.log("avatar load failed");
   }
 
-  const avatar = await loadImage(avatarPath);
-
-  ctx.drawImage(
-    avatar,
-    125, // X
-    175, // Y
-    220, // W
-    280  // H
-  );
-
-  // ===== DATA =====
-  const licenseNo = String(user.points || 0).padStart(11, "0");
-  const rank = getRank(user.points || 0);
-  const username = user.thmUsername || "Unknown";
+  // ===== TEXT STYLE =====
+  ctx.fillStyle = "#111";
+  ctx.font = "bold 46px RobotoBold";
 
   // ===== LICENSE NUMBER =====
-  ctx.font = "bold 42px Roboto";
-  ctx.fillText(licenseNo, 430, 255);
+  const licenseNo = String(user.points).padStart(10, "0");
+  ctx.fillText(licenseNo, 460, 250);
 
   // ===== RANK =====
-  ctx.font = "bold 72px Roboto";
-  ctx.fillText(rank, 690, 255);
+  ctx.font = "bold 64px RobotoBold";
+  ctx.fillText(getRank(user.points), 860, 250);
 
-  // ===== USERNAME =====
-  ctx.font = "bold 58px Roboto";
-  ctx.fillText(username, 430, 330);
+  // ===== NAME =====
+  ctx.font = "bold 48px RobotoBold";
+  ctx.fillText(user.thmUsername, 460, 340);
 
   // ===== CATEGORY =====
-  ctx.font = "bold 48px Roboto";
-  ctx.fillText("Hacker", 700, 470);
+  ctx.font = "bold 44px RobotoBold";
+  ctx.fillText("Hacker", 860, 520);
 
-  // ===== RETURN BUFFER =====
   return canvas.toBuffer("image/png");
 }
 
-module.exports = {
-  generateCard,
-};
+module.exports = { generateCard };

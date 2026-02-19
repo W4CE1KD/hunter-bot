@@ -1,8 +1,9 @@
 const axios = require("axios");
-const cheerio = require("cheerio");
 
 async function getTHMProfile(username) {
   try {
+
+    // fetch profile page
     const { data } = await axios.get(
       `https://tryhackme.com/p/${username}`,
       {
@@ -12,26 +13,43 @@ async function getTHMProfile(username) {
       }
     );
 
-    const $ = cheerio.load(data);
+    // ===============================
+    // Extract Next.js JSON data
+    // ===============================
+    const match = data.match(
+      /<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/
+    );
 
-    // 🔥 avatar selector (stable)
-    const avatar =
-      $('img[alt="User avatar"]').first().attr("src") || "";
-
-    // 🔥 TryHackMe hides real points
-    // using rank number as fallback
-    let points = 1000;
-
-    const bodyText = $("body").text();
-    const rankMatch = bodyText.match(/Rank\s*(\d+)/i);
-
-    if (rankMatch) {
-      points = parseInt(rankMatch[1]);
+    if (!match) {
+      console.log("THM JSON not found");
+      return null;
     }
 
+    const json = JSON.parse(match[1]);
+
+    // ===============================
+    // Safe navigation (no crash)
+    // ===============================
+    const user =
+      json?.props?.pageProps?.user || null;
+
+    if (!user) {
+      console.log("User data not found");
+      return null;
+    }
+
+    // ===============================
+    // Extract values
+    // ===============================
+    const avatar = user.avatar || "";
+
+    // TryHackMe hides real points publicly,
+    // so we use rank as fallback value
+    const points = user.rank || 1000;
+
     return {
-      points,
-      avatar
+      avatar,
+      points
     };
 
   } catch (err) {

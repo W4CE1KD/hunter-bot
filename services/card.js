@@ -44,7 +44,6 @@ async function generateCard(user) {
   const canvas = createCanvas(width, height);
   const ctx    = canvas.getContext("2d");
 
-  // ── Background template ──────────────────────────────────────────────────
   const template = await loadImage(
     path.join(__dirname, "../assets/license-template.png")
   );
@@ -55,12 +54,8 @@ async function generateCard(user) {
   const color     = getRankColor(rank);
   const category  = getCategory(rank);
 
-  // ── Avatar — image 2 style, slightly lower + a bit wider ─────────────────
-  const avatarX = 76;
-  const avatarY = 200;  // moved down a bit from 145
-  const avatarW = 275;  // slightly wider than 250
-  const avatarH = 310;
-
+  // ── Avatar ────────────────────────────────────────────────────────────────
+  const avatarX = 76, avatarY = 195, avatarW = 275, avatarH = 310;
   try {
     const avatar = await loadImage(user.avatar);
     ctx.strokeStyle = color;
@@ -69,18 +64,55 @@ async function generateCard(user) {
     ctx.drawImage(avatar, avatarX, avatarY, avatarW, avatarH);
   } catch {}
 
-  // Content starts after avatar
   const contentX = avatarX + avatarW + 40;
   const contentW = 750;
 
-  // ── Helper: inline label (dark) + value (rank color) ─────────────────────
+  // ── Helper: draw a rounded pill badge behind text ─────────────────────────
+  function drawBadge(x, y, w, h, r = 8) {
+    ctx.save();
+    ctx.fillStyle   = color;
+    ctx.globalAlpha = 0.12;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 0.7;
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── Helper: label in dark + value with badge behind it ───────────────────
   function inlineField(label, value, x, y, fontSize = 52) {
-    ctx.font      = `bold ${fontSize}px RobotoBold`;
+    ctx.font = `bold ${fontSize}px RobotoBold`;
+
+    // Draw label
     ctx.fillStyle = "#1e293b";
     ctx.fillText(label, x, y);
     const lw = ctx.measureText(label).width;
+
+    // Measure value for badge size
+    const vw      = ctx.measureText(value).width;
+    const padX    = 16, padY = 10;
+    const badgeH  = fontSize + padY * 2;
+    const valueX  = x + lw;
+    const badgeY  = y - fontSize - padY + 6;
+
+    // Draw badge behind value
+    drawBadge(valueX - padX, badgeY, vw + padX * 2, badgeH);
+
+    // Draw value text
     ctx.fillStyle = color;
-    ctx.fillText(value, x + lw, y);
+    ctx.fillText(value, valueX, y);
   }
 
   // ── Helper: gradient fade divider ────────────────────────────────────────
@@ -104,33 +136,9 @@ async function generateCard(user) {
   const rankLabel = `[ ${rank} ]`;
   ctx.font = "bold 54px RobotoBold";
   const rankTextW = ctx.measureText(rankLabel).width;
-  const badgeW    = rankTextW + 44;
-  const badgeH    = 68;
-  const badgeX    = 1120 - badgeW;
-  const badgeY    = 98;
-  const br        = 10;
+  const badgeW = rankTextW + 44, badgeH = 68, badgeX = 1120 - rankTextW - 44, badgeY = 98;
 
-  ctx.fillStyle   = color;
-  ctx.globalAlpha = 0.12;
-  ctx.beginPath();
-  ctx.moveTo(badgeX + br, badgeY);
-  ctx.lineTo(badgeX + badgeW - br, badgeY);
-  ctx.quadraticCurveTo(badgeX + badgeW, badgeY, badgeX + badgeW, badgeY + br);
-  ctx.lineTo(badgeX + badgeW, badgeY + badgeH - br);
-  ctx.quadraticCurveTo(badgeX + badgeW, badgeY + badgeH, badgeX + badgeW - br, badgeY + badgeH);
-  ctx.lineTo(badgeX + br, badgeY + badgeH);
-  ctx.quadraticCurveTo(badgeX, badgeY + badgeH, badgeX, badgeY + badgeH - br);
-  ctx.lineTo(badgeX, badgeY + br);
-  ctx.quadraticCurveTo(badgeX, badgeY, badgeX + br, badgeY);
-  ctx.closePath();
-  ctx.fill();
-  ctx.globalAlpha = 1;
-
-  ctx.strokeStyle = color;
-  ctx.lineWidth   = 2;
-  ctx.globalAlpha = 0.8;
-  ctx.stroke();
-  ctx.globalAlpha = 1;
+  drawBadge(badgeX, badgeY, badgeW, badgeH, 10);
 
   ctx.font      = "bold 38px RobotoBold";
   ctx.fillStyle = "#1e293b";
@@ -141,7 +149,7 @@ async function generateCard(user) {
 
   // ── CONTENT FIELDS ────────────────────────────────────────────────────────
   divider(200);
-  inlineField("License No. : ", licenseNo, contentX, 260, 48);
+  inlineField("License No : ", licenseNo, contentX, 260, 48);
 
   divider(288);
   inlineField("Name : ", `[${user.thmUsername}]`, contentX, 352, 56);

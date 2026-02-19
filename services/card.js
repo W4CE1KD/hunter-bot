@@ -18,6 +18,7 @@ function getRank(points) {
 }
 
 function getRankColor(rank) {
+  // Muted cool accents for a polished dark UI.
   switch (rank) {
     case "S":
       return "#A4B6CC";
@@ -37,22 +38,22 @@ function getRankColor(rank) {
 function getCategory(rank) {
   switch (rank) {
     case "S":
-      return "Omniscient";
+      return "Monarch";
     case "A":
-      return "Guru";
+      return "Shadow Adept";
     case "B":
-      return "Elite Hacker";
+      return "Elite Hunter";
     case "C":
-      return "Pro Hacker";
+      return "Hunter";
     case "D":
-      return "Hacker";
+      return "Rookie";
     default:
-      return "Script Kiddie";
+      return "Unawakened";
   }
 }
 
-const DEFAULT_TEAM = "morvax60";
-const DEFAULT_CTFS = "10";
+const DEFAULT_TEAM = "-";
+const DEFAULT_CTFS = "-";
 
 function hexToRgba(hex, alpha = 1) {
   const clean = hex.replace("#", "");
@@ -244,8 +245,8 @@ function drawDivider(ctx, x, y, w, strokeStyle = "rgba(255,255,255,0.08)") {
 }
 
 async function generateCard(user) {
-  const width = 1200;
-  const height = 520;
+  const width = 1220;
+  const height = 640;
 
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
@@ -374,8 +375,7 @@ async function generateCard(user) {
 
   if (!avatarDrawn) {
     const initials = (name.trim()[0] || "U").toUpperCase();
-    ctx.fillStyle = "rgba(255,255,255,0.06)";
-    ctx.fillRect(avatarX, avatarY, avatarW, avatarH);
+    fillRoundRect(ctx, avatarX, avatarY, avatarW, avatarH, 16, "rgba(255,255,255,0.06)");
     ctx.textAlign = "center";
     ctx.font = "bold 84px RobotoBold";
     ctx.fillStyle = "rgba(236,240,247,0.50)";
@@ -423,13 +423,9 @@ async function generateCard(user) {
     ctx.fillText(text, infoTextX, y + 38);
   }
 
-  drawField("Name", name, infoY + 44);
+  drawField("Category", category, infoY + 44, 36, 22);
   drawDivider(ctx, infoTextX, infoY + 118, infoTextW, "rgba(255,255,255,0.10)");
-
-  drawField("Category", category, infoY + 132, 36, 22);
-  drawDivider(ctx, infoTextX, infoY + 206, infoTextW, "rgba(255,255,255,0.10)");
-
-  drawField("Points", points.toLocaleString("en-US"), infoY + 220, 46, 24);
+  drawField("Points", points.toLocaleString("en-US"), infoY + 132, 46, 24);
 
   const statY = infoY + infoH - 86;
   const statH = 58;

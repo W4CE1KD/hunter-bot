@@ -55,10 +55,13 @@ async function generateCard(user) {
   const color     = getRankColor(rank);
   const category  = getCategory(rank);
 
+  // Content area starts after avatar (avatar: x=80, w=250 → ends at 330)
+  const contentX = 390;
+  const contentW = 740; // ends around x=1130
+
   // ── Avatar with rank-colored border ──────────────────────────────────────
   try {
     const avatar = await loadImage(user.avatar);
-    // Outer glow border
     ctx.strokeStyle = color;
     ctx.lineWidth   = 5;
     ctx.strokeRect(76, 141, 258, 308);
@@ -75,28 +78,25 @@ async function generateCard(user) {
     ctx.fillText(value, x + lw, y);
   }
 
-  // ── Helper: full-width divider with dot accent ────────────────────────────
+  // ── Helper: clean divider — just a simple faded line, NO dots ────────────
   function divider(y) {
-    const x = 370, w = 760;
-    // Line
-    ctx.strokeStyle = color;
+    ctx.save();
+    // Gradient line that fades at both ends
+    const grad = ctx.createLinearGradient(contentX, y, contentX + contentW, y);
+    grad.addColorStop(0,   "rgba(0,0,0,0)");
+    grad.addColorStop(0.1, color + "55");
+    grad.addColorStop(0.9, color + "55");
+    grad.addColorStop(1,   "rgba(0,0,0,0)");
+    ctx.strokeStyle = grad;
     ctx.lineWidth   = 1.5;
-    ctx.globalAlpha = 0.25;
     ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x + w, y);
+    ctx.moveTo(contentX, y);
+    ctx.lineTo(contentX + contentW, y);
     ctx.stroke();
-    ctx.globalAlpha = 1;
-    // Small dot on left
-    ctx.fillStyle   = color;
-    ctx.globalAlpha = 0.6;
-    ctx.beginPath();
-    ctx.arc(x, y, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
+    ctx.restore();
   }
 
-  // ── RANK BADGE — top right ────────────────────────────────────────────────
+  // ── RANK BADGE — top right (untouched) ───────────────────────────────────
   const rankLabel = `[ ${rank} ]`;
   ctx.font = "bold 54px RobotoBold";
   const rankTextW = ctx.measureText(rankLabel).width;
@@ -106,7 +106,7 @@ async function generateCard(user) {
   const badgeY    = 98;
   const br        = 10;
 
-  // Badge background
+  // Badge fill
   ctx.fillStyle   = color;
   ctx.globalAlpha = 0.12;
   ctx.beginPath();
@@ -130,7 +130,7 @@ async function generateCard(user) {
   ctx.stroke();
   ctx.globalAlpha = 1;
 
-  // "Rank :" label (left of badge)
+  // "Rank :" label
   ctx.font      = "bold 38px RobotoBold";
   ctx.fillStyle = "#1e293b";
   ctx.fillText("Rank :", badgeX - 130, badgeY + 45);
@@ -141,29 +141,29 @@ async function generateCard(user) {
   ctx.fillText(rankLabel, badgeX + 22, badgeY + 49);
 
   // ── DIVIDER 1 ─────────────────────────────────────────────────────────────
-  divider(190);
+  divider(192);
 
   // ── LICENSE NO ───────────────────────────────────────────────────────────
-  inlineField("License No. : ", licenseNo, 370, 248, 48);
+  inlineField("License No. : ", licenseNo, contentX, 252, 48);
 
   // ── DIVIDER 2 ─────────────────────────────────────────────────────────────
-  divider(275);
+  divider(278);
 
   // ── NAME ─────────────────────────────────────────────────────────────────
-  inlineField("Name : ", `[${user.thmUsername}]`, 370, 338, 56);
+  inlineField("Name : ", `[${user.thmUsername}]`, contentX, 342, 56);
 
   // ── DIVIDER 3 ─────────────────────────────────────────────────────────────
-  divider(365);
+  divider(370);
 
   // ── CATEGORY ─────────────────────────────────────────────────────────────
-  inlineField("Category : ", category, 370, 428, 48);
+  inlineField("Category : ", category, contentX, 432, 48);
 
   // ── DIVIDER 4 ─────────────────────────────────────────────────────────────
-  divider(455);
+  divider(458);
 
   // ── TEAMNAME (left) + CTFs (right) ───────────────────────────────────────
-  inlineField("teamname : ", DEFAULT_TEAM, 370, 520, 44);
-  inlineField("ctfs : ", DEFAULT_CTFS, 870, 520, 44);
+  inlineField("teamname : ", DEFAULT_TEAM, contentX, 522, 44);
+  inlineField("ctfs : ", DEFAULT_CTFS, contentX + 480, 522, 44);
 
   return canvas.toBuffer("image/png");
 }

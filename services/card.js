@@ -27,7 +27,7 @@ async function generateCard(user) {
 
   // ===== LOAD TEMPLATE =====
   const template = await loadImage(
-    path.join(__dirname, "../assets/license-template-Photoroom.png")
+    path.join(__dirname, "../assets/license-template.png")
   );
 
   ctx.drawImage(template, 0, 0, width, height);

@@ -24,6 +24,10 @@ function getRankColor(rank) {
   }
 }
 
+// ── Default team info (same for everyone) ────────────────────────────────────
+const DEFAULT_TEAM = "morvax60";
+const DEFAULT_CTFS = "10";
+
 async function generateCard(user) {
   const width  = 1280;
   const height = 720;
@@ -56,11 +60,11 @@ async function generateCard(user) {
     ctx.fillText(value, x + lw, y);
   }
 
-  // ── LICENSE NO (inline, same style as name) ───────────────────────────────
-  inlineField("License No. : ", licenseNo, 460, 210, 52);
+  // ── RANK — top right corner (where red box is marked) ────────────────────
+  inlineField("Rank : ", `[ ${rank} ]`, 920, 115, 48);
 
-  // ── RANK (right side, same row as license) ────────────────────────────────
-  inlineField("Rank : ", `[ ${rank} ]`, 880, 210, 52);
+  // ── LICENSE NO ───────────────────────────────────────────────────────────
+  inlineField("License No. : ", licenseNo, 460, 210, 52);
 
   // ── NAME ─────────────────────────────────────────────────────────────────
   inlineField("Name : ", `[${user.thmUsername}]`, 460, 310, 56);
@@ -68,9 +72,9 @@ async function generateCard(user) {
   // ── CATEGORY ─────────────────────────────────────────────────────────────
   inlineField("Category : ", user.category || "Hacker", 460, 390, 48);
 
-  // ── TEAMNAME (left) + CTFs (right, same row) ──────────────────────────────
-  inlineField("teamname : ", user.teamName || "—", 460, 470, 44);
-  inlineField("ctfs : ", String(user.ctfs ?? "0"), 850, 470, 44);
+  // ── TEAMNAME (left) + CTFs (right), same row ─────────────────────────────
+  inlineField("teamname : ", DEFAULT_TEAM, 460, 470, 44);
+  inlineField("ctfs : ", DEFAULT_CTFS, 850, 470, 44);
 
   return canvas.toBuffer("image/png");
 }

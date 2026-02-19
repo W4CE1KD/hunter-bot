@@ -205,21 +205,21 @@ function drawAvatarBalanced(ctx, image, x, y, w, h, accent) {
     Math.max(w, h) * 0.72
   );
   edgeVignette.addColorStop(0, "rgba(0,0,0,0)");
-  edgeVignette.addColorStop(1, "rgba(7,10,14,0.34)");
+  edgeVignette.addColorStop(1, "rgba(0,0,0,0.50)");
   ctx.fillStyle = edgeVignette;
   ctx.fillRect(x, y, w, h);
 
   const bottomShade = ctx.createLinearGradient(0, y, 0, y + h);
   bottomShade.addColorStop(0, "rgba(0,0,0,0)");
   bottomShade.addColorStop(0.62, "rgba(0,0,0,0)");
-  bottomShade.addColorStop(1, "rgba(7,10,14,0.30)");
+  bottomShade.addColorStop(1, "rgba(0,0,0,0.44)");
   ctx.fillStyle = bottomShade;
   ctx.fillRect(x, y, w, h);
 
-  ctx.fillStyle = `rgba(118, 127, 141, ${neutralAlpha})`;
+  ctx.fillStyle = `rgba(0, 0, 0, ${neutralAlpha})`;
   ctx.fillRect(x, y, w, h);
 
-  ctx.fillStyle = `rgba(8, 12, 18, ${darkOverlayAlpha})`;
+  ctx.fillStyle = `rgba(0, 0, 0, ${darkOverlayAlpha})`;
   ctx.fillRect(x, y, w, h);
 
   if (liftAlpha > 0) {
@@ -233,7 +233,7 @@ function drawAvatarBalanced(ctx, image, x, y, w, h, accent) {
   ctx.restore();
 }
 
-function drawDivider(ctx, x, y, w, strokeStyle = "rgba(255,255,255,0.08)") {
+function drawDivider(ctx, x, y, w, strokeStyle = "rgba(92,120,150,0.30)") {
   ctx.save();
   ctx.strokeStyle = strokeStyle;
   ctx.lineWidth = 1;
@@ -244,9 +244,33 @@ function drawDivider(ctx, x, y, w, strokeStyle = "rgba(255,255,255,0.08)") {
   ctx.restore();
 }
 
+function drawCornerBrackets(ctx, x, y, w, h, size, color, lineWidth = 2) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.beginPath();
+  ctx.moveTo(x, y + size);
+  ctx.lineTo(x, y);
+  ctx.lineTo(x + size, y);
+
+  ctx.moveTo(x + w - size, y);
+  ctx.lineTo(x + w, y);
+  ctx.lineTo(x + w, y + size);
+
+  ctx.moveTo(x + w, y + h - size);
+  ctx.lineTo(x + w, y + h);
+  ctx.lineTo(x + w - size, y + h);
+
+  ctx.moveTo(x + size, y + h);
+  ctx.lineTo(x, y + h);
+  ctx.lineTo(x, y + h - size);
+  ctx.stroke();
+  ctx.restore();
+}
+
 async function generateCard(user) {
-  const width = 1220;
-  const height = 640;
+  const width = 1280;
+  const height = 700;
 
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
@@ -261,22 +285,42 @@ async function generateCard(user) {
   const team = user?.team ?? DEFAULT_TEAM;
   const ctf = user?.ctf ?? DEFAULT_CTFS;
 
-  const bg = ctx.createLinearGradient(0, 0, 0, height);
-  bg.addColorStop(0, "#0B0F14");
-  bg.addColorStop(0.55, "#10161E");
-  bg.addColorStop(1, "#0B0F14");
-  ctx.fillStyle = bg;
+  const theme = {
+    black: "#000000",
+    borderStrong: "rgba(128,156,190,0.42)",
+    borderSoft: "rgba(128,156,190,0.24)",
+    textPrimary: "rgba(240,247,255,0.96)",
+    textSecondary: "rgba(170,188,208,0.78)",
+    textMuted: "rgba(126,145,168,0.62)",
+  };
+
+  ctx.fillStyle = theme.black;
   ctx.fillRect(0, 0, width, height);
 
-  const accentGlow = ctx.createRadialGradient(width * 0.82, height * 0.16, 0, width * 0.82, height * 0.16, 300);
-  accentGlow.addColorStop(0, hexToRgba(accent, 0.2));
-  accentGlow.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = accentGlow;
+  const rightGlow = ctx.createRadialGradient(width * 0.86, height * 0.12, 0, width * 0.86, height * 0.12, 360);
+  rightGlow.addColorStop(0, hexToRgba(accent, 0.30));
+  rightGlow.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = rightGlow;
   ctx.fillRect(0, 0, width, height);
 
-  const vignette = ctx.createRadialGradient(width / 2, height / 2, width * 0.32, width / 2, height / 2, width * 0.75);
+  const leftGlow = ctx.createRadialGradient(width * 0.12, height * 0.80, 0, width * 0.12, height * 0.80, 320);
+  leftGlow.addColorStop(0, hexToRgba(accent, 0.12));
+  leftGlow.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = leftGlow;
+  ctx.fillRect(0, 0, width, height);
+
+  const beam = ctx.createLinearGradient(0, 0, width, height);
+  beam.addColorStop(0, "rgba(0,0,0,0)");
+  beam.addColorStop(0.48, "rgba(0,0,0,0)");
+  beam.addColorStop(0.60, hexToRgba(accent, 0.07));
+  beam.addColorStop(0.76, "rgba(0,0,0,0)");
+  beam.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = beam;
+  ctx.fillRect(0, 0, width, height);
+
+  const vignette = ctx.createRadialGradient(width / 2, height / 2, width * 0.28, width / 2, height / 2, width * 0.74);
   vignette.addColorStop(0, "rgba(0,0,0,0)");
-  vignette.addColorStop(1, "rgba(0,0,0,0.46)");
+  vignette.addColorStop(1, "rgba(0,0,0,0.74)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, width, height);
 
@@ -286,81 +330,86 @@ async function generateCard(user) {
   const cardH = height - 48;
 
   ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.45)";
-  ctx.shadowBlur = 28;
-  ctx.shadowOffsetY = 8;
-  fillRoundRect(ctx, cardX, cardY, cardW, cardH, 26, "#131A22");
+  ctx.shadowColor = "rgba(0,0,0,0.72)";
+  ctx.shadowBlur = 34;
+  ctx.shadowOffsetY = 10;
+  fillRoundRect(ctx, cardX, cardY, cardW, cardH, 30, theme.black);
   ctx.restore();
 
-  const cardSurface = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
-  cardSurface.addColorStop(0, "rgba(255,255,255,0.030)");
-  cardSurface.addColorStop(1, "rgba(255,255,255,0.010)");
-  fillRoundRect(ctx, cardX, cardY, cardW, cardH, 26, cardSurface);
-  strokeRoundRect(ctx, cardX, cardY, cardW, cardH, 26, "rgba(255,255,255,0.10)", 1);
+  strokeRoundRect(ctx, cardX, cardY, cardW, cardH, 30, theme.borderStrong, 1.2);
+  strokeRoundRect(ctx, cardX + 8, cardY + 8, cardW - 16, cardH - 16, 24, theme.borderSoft, 1);
 
   const contentX = cardX + 36;
-  const headerY = cardY + 38;
+  const headerY = cardY + 42;
+  const headerBottom = cardY + 128;
 
-  ctx.font = "bold 32px RobotoBold";
-  ctx.fillStyle = "rgba(236,240,247,0.96)";
+  ctx.font = "bold 52px RobotoBold";
+  ctx.fillStyle = theme.textPrimary;
   ctx.fillText("HUNTER LICENSE", contentX, headerY + 26);
 
-  ctx.font = "15px Roboto";
-  ctx.fillStyle = "rgba(236,240,247,0.56)";
-  ctx.fillText("Secure Identity Card", contentX, headerY + 52);
+  ctx.font = "28px Roboto";
+  ctx.fillStyle = theme.textSecondary;
+  ctx.fillText("Secure Identity Card", contentX, headerY + 64);
 
-  const chipW = 74;
-  const chipH = 46;
+  ctx.font = "14px Roboto";
+  ctx.fillStyle = theme.textMuted;
+  ctx.fillText("Access Tier Credential / Zero Trust Network", contentX, headerY + 92);
+
+  const chipW = 90;
+  const chipH = 58;
   const chipX = cardX + cardW - 36 - chipW;
   const chipY = cardY + 40;
 
-  fillRoundRect(ctx, chipX, chipY, chipW, chipH, 14, hexToRgba(accent, 0.16));
-  strokeRoundRect(ctx, chipX, chipY, chipW, chipH, 14, hexToRgba(accent, 0.62), 1);
+  fillRoundRect(ctx, chipX, chipY, chipW, chipH, 16, theme.black);
+  strokeRoundRect(ctx, chipX, chipY, chipW, chipH, 16, hexToRgba(accent, 0.68), 1.2);
+  drawCornerBrackets(ctx, chipX + 4, chipY + 4, chipW - 8, chipH - 8, 10, hexToRgba(accent, 0.52), 1);
   ctx.textAlign = "center";
-  ctx.font = "bold 28px RobotoBold";
+  ctx.font = "bold 34px RobotoBold";
   ctx.fillStyle = accent;
-  ctx.fillText(rank, chipX + chipW / 2, chipY + 33);
+  ctx.fillText(rank, chipX + chipW / 2, chipY + 41);
   ctx.textAlign = "left";
 
-  const licenseRight = chipX - 24;
+  const licenseRight = chipX - 30;
   ctx.textAlign = "right";
-  ctx.font = "bold 11px RobotoBold";
-  ctx.fillStyle = "rgba(236,240,247,0.50)";
-  ctx.fillText("LICENSE", licenseRight, chipY + 12);
-  ctx.font = "20px Roboto";
-  ctx.fillStyle = "rgba(236,240,247,0.90)";
-  ctx.fillText(licenseNo, licenseRight, chipY + 37);
+  ctx.font = "bold 12px RobotoBold";
+  ctx.fillStyle = theme.textSecondary;
+  ctx.fillText("LICENSE", licenseRight, chipY + 14);
+  ctx.font = "34px RobotoBold";
+  ctx.fillStyle = theme.textPrimary;
+  ctx.fillText(licenseNo, licenseRight, chipY + 50);
   ctx.textAlign = "left";
 
-  const ruleY = cardY + 114;
+  const ruleY = headerBottom;
   const rule = ctx.createLinearGradient(cardX + 24, 0, cardX + cardW - 24, 0);
-  rule.addColorStop(0, "rgba(255,255,255,0)");
-  rule.addColorStop(0.2, "rgba(255,255,255,0.10)");
-  rule.addColorStop(0.8, "rgba(255,255,255,0.10)");
-  rule.addColorStop(1, "rgba(255,255,255,0)");
+  rule.addColorStop(0, "rgba(128,156,190,0)");
+  rule.addColorStop(0.2, "rgba(128,156,190,0.42)");
+  rule.addColorStop(0.8, "rgba(128,156,190,0.42)");
+  rule.addColorStop(1, "rgba(128,156,190,0)");
   drawDivider(ctx, cardX + 24, ruleY, cardW - 48, rule);
 
-  const accentRule = ctx.createLinearGradient(cardX + 24, 0, cardX + cardW - 24, 0);
+  const accentRule = ctx.createLinearGradient(cardX + 40, 0, cardX + cardW - 40, 0);
   accentRule.addColorStop(0, "rgba(0,0,0,0)");
-  accentRule.addColorStop(0.55, hexToRgba(accent, 0.35));
+  accentRule.addColorStop(0.5, hexToRgba(accent, 0.40));
   accentRule.addColorStop(1, "rgba(0,0,0,0)");
   drawDivider(ctx, cardX + 24, ruleY + 1, cardW - 48, accentRule);
 
-  const bodyY = cardY + 132;
-  const leftX = cardX + 34;
-  const leftW = 286;
-  const leftH = 304;
+  const bodyY = headerBottom + 22;
+  const bodyH = cardY + cardH - bodyY - 24;
+  const leftX = cardX + 24;
+  const leftW = 336;
+  const leftH = bodyH;
 
-  fillRoundRect(ctx, leftX, bodyY, leftW, leftH, 20, "rgba(10,14,20,0.78)");
-  strokeRoundRect(ctx, leftX, bodyY, leftW, leftH, 20, "rgba(255,255,255,0.10)", 1);
+  fillRoundRect(ctx, leftX, bodyY, leftW, leftH, 24, theme.black);
+  strokeRoundRect(ctx, leftX, bodyY, leftW, leftH, 24, theme.borderStrong, 1.2);
+  drawCornerBrackets(ctx, leftX + 6, bodyY + 6, leftW - 12, leftH - 12, 18, hexToRgba(accent, 0.45), 1.3);
 
   const avatarX = leftX + 18;
   const avatarY = bodyY + 18;
   const avatarW = leftW - 36;
-  const avatarH = 214;
+  const avatarH = avatarW;
 
-  fillRoundRect(ctx, avatarX, avatarY, avatarW, avatarH, 16, "rgba(255,255,255,0.04)");
-  strokeRoundRect(ctx, avatarX, avatarY, avatarW, avatarH, 16, "rgba(255,255,255,0.08)", 1);
+  fillRoundRect(ctx, avatarX, avatarY, avatarW, avatarH, 18, theme.black);
+  strokeRoundRect(ctx, avatarX, avatarY, avatarW, avatarH, 18, "rgba(124,151,184,0.44)", 1.2);
 
   let avatarDrawn = false;
   if (user?.avatar) {
@@ -375,66 +424,89 @@ async function generateCard(user) {
 
   if (!avatarDrawn) {
     const initials = (name.trim()[0] || "U").toUpperCase();
-    fillRoundRect(ctx, avatarX, avatarY, avatarW, avatarH, 16, "rgba(255,255,255,0.06)");
+    fillRoundRect(ctx, avatarX, avatarY, avatarW, avatarH, 18, theme.black);
     ctx.textAlign = "center";
     ctx.font = "bold 84px RobotoBold";
-    ctx.fillStyle = "rgba(236,240,247,0.50)";
+    ctx.fillStyle = "rgba(236,240,247,0.62)";
     ctx.fillText(initials, avatarX + avatarW / 2, avatarY + avatarH / 2 + 30);
     ctx.textAlign = "left";
   }
 
-  ctx.font = "bold 11px RobotoBold";
-  ctx.fillStyle = "rgba(236,240,247,0.46)";
-  ctx.fillText("PROFILE", avatarX, bodyY + leftH - 48);
+  ctx.font = "bold 12px RobotoBold";
+  ctx.fillStyle = theme.textSecondary;
+  ctx.fillText("PROFILE", avatarX, avatarY + avatarH + 34);
 
-  const avatarNameSize = fitText(ctx, name, avatarW, 34, 20, "RobotoBold", "bold");
+  const avatarNameSize = fitText(ctx, name, avatarW, 56, 24, "RobotoBold", "bold");
   ctx.font = `bold ${avatarNameSize}px RobotoBold`;
-  ctx.fillStyle = "rgba(236,240,247,0.94)";
-  ctx.fillText(name, avatarX, bodyY + leftH - 14);
+  ctx.fillStyle = theme.textPrimary;
+  ctx.fillText(name, avatarX, avatarY + avatarH + 82);
 
-  const infoX = leftX + leftW + 26;
+  ctx.font = "13px Roboto";
+  ctx.fillStyle = theme.textMuted;
+  ctx.fillText("THM USER", avatarX, avatarY + avatarH + 110);
+
+  const infoX = leftX + leftW + 24;
   const infoY = bodyY;
-  const infoW = cardX + cardW - infoX - 34;
+  const infoW = cardX + cardW - infoX - 24;
   const infoH = leftH;
 
-  fillRoundRect(ctx, infoX, infoY, infoW, infoH, 20, "rgba(255,255,255,0.028)");
-  strokeRoundRect(ctx, infoX, infoY, infoW, infoH, 20, "rgba(255,255,255,0.10)", 1);
+  fillRoundRect(ctx, infoX, infoY, infoW, infoH, 24, theme.black);
+  strokeRoundRect(ctx, infoX, infoY, infoW, infoH, 24, theme.borderStrong, 1.2);
+  drawCornerBrackets(ctx, infoX + 6, infoY + 6, infoW - 12, infoH - 12, 20, hexToRgba(accent, 0.42), 1.3);
 
   ctx.save();
-  ctx.globalAlpha = 0.07;
+  ctx.globalAlpha = 0.12;
   ctx.fillStyle = accent;
-  ctx.font = "bold 180px RobotoBold";
-  ctx.fillText(rank, infoX + infoW - 155, infoY + infoH - 28);
+  ctx.font = "bold 270px RobotoBold";
+  ctx.fillText(rank, infoX + infoW - 230, infoY + infoH - 18);
   ctx.restore();
 
-  const infoPad = 30;
+  const infoPad = 24;
   const infoTextX = infoX + infoPad;
   const infoTextW = infoW - infoPad * 2;
 
-  function drawField(label, value, y, startSize = 42, minSize = 22) {
-    ctx.font = "bold 12px RobotoBold";
-    ctx.fillStyle = "rgba(236,240,247,0.50)";
-    ctx.fillText(label.toUpperCase(), infoTextX, y);
+  const catY = infoY + 24;
+  const catH = 124;
+  fillRoundRect(ctx, infoTextX, catY, infoTextW, catH, 16, theme.black);
+  const catOverlay = ctx.createLinearGradient(infoTextX, 0, infoTextX + infoTextW, 0);
+  catOverlay.addColorStop(0, hexToRgba(accent, 0.22));
+  catOverlay.addColorStop(0.65, hexToRgba(accent, 0.07));
+  catOverlay.addColorStop(1, "rgba(0,0,0,0)");
+  fillRoundRect(ctx, infoTextX, catY, infoTextW, catH, 16, catOverlay);
+  strokeRoundRect(ctx, infoTextX, catY, infoTextW, catH, 16, "rgba(124,151,184,0.42)", 1.1);
+  fillRoundRect(ctx, infoTextX + 12, catY + 14, 6, catH - 28, 4, accent);
 
-    const text = value == null ? "-" : String(value);
-    const size = fitText(ctx, text, infoTextW, startSize, minSize, "RobotoBold", "bold");
-    ctx.font = `bold ${size}px RobotoBold`;
-    ctx.fillStyle = "rgba(236,240,247,0.95)";
-    ctx.fillText(text, infoTextX, y + 38);
-  }
+  ctx.font = "bold 12px RobotoBold";
+  ctx.fillStyle = theme.textSecondary;
+  ctx.fillText("CATEGORY", infoTextX + 28, catY + 24);
+  const categorySize = fitText(ctx, category, infoTextW - 56, 58, 24, "RobotoBold", "bold");
+  ctx.font = `bold ${categorySize}px RobotoBold`;
+  ctx.fillStyle = theme.textPrimary;
+  ctx.fillText(category, infoTextX + 28, catY + 86);
 
-  drawField("Category", category, infoY + 44, 36, 22);
-  drawDivider(ctx, infoTextX, infoY + 118, infoTextW, "rgba(255,255,255,0.10)");
-  drawField("Points", points.toLocaleString("en-US"), infoY + 132, 46, 24);
+  const pointsY = catY + catH + 16;
+  const pointsH = 150;
+  fillRoundRect(ctx, infoTextX, pointsY, infoTextW, pointsH, 16, theme.black);
+  strokeRoundRect(ctx, infoTextX, pointsY, infoTextW, pointsH, 16, "rgba(124,151,184,0.34)", 1.1);
+  drawDivider(ctx, infoTextX + 12, pointsY + 48, infoTextW - 24, "rgba(124,151,184,0.28)");
 
-  const statY = infoY + infoH - 86;
-  const statH = 58;
-  fillRoundRect(ctx, infoTextX, statY, infoTextW, statH, 14, "rgba(255,255,255,0.03)");
-  strokeRoundRect(ctx, infoTextX, statY, infoTextW, statH, 14, "rgba(255,255,255,0.08)", 1);
+  ctx.font = "bold 12px RobotoBold";
+  ctx.fillStyle = theme.textSecondary;
+  ctx.fillText("POINTS", infoTextX + 18, pointsY + 28);
+  const pointsText = points.toLocaleString("en-US");
+  const pointsSize = fitText(ctx, pointsText, infoTextW - 36, 86, 34, "RobotoBold", "bold");
+  ctx.font = `bold ${pointsSize}px RobotoBold`;
+  ctx.fillStyle = theme.textPrimary;
+  ctx.fillText(pointsText, infoTextX + 18, pointsY + 117);
+
+  const statY = pointsY + pointsH + 16;
+  const statH = Math.max(68, infoY + infoH - statY - 24);
+  fillRoundRect(ctx, infoTextX, statY, infoTextW, statH, 14, theme.black);
+  strokeRoundRect(ctx, infoTextX, statY, infoTextW, statH, 14, "rgba(124,151,184,0.30)", 1);
 
   const midX = infoTextX + infoTextW / 2;
   ctx.save();
-  ctx.strokeStyle = "rgba(255,255,255,0.08)";
+  ctx.strokeStyle = "rgba(124,151,184,0.26)";
   ctx.beginPath();
   ctx.moveTo(midX, statY + 10);
   ctx.lineTo(midX, statY + statH - 10);
@@ -442,7 +514,7 @@ async function generateCard(user) {
   ctx.restore();
 
   ctx.font = "bold 11px RobotoBold";
-  ctx.fillStyle = "rgba(236,240,247,0.44)";
+  ctx.fillStyle = theme.textSecondary;
   ctx.fillText("TEAM", infoTextX + 18, statY + 18);
   ctx.fillText("CTF", midX + 18, statY + 18);
 
@@ -451,16 +523,16 @@ async function generateCard(user) {
 
   const teamSize = fitText(ctx, teamText, infoTextW / 2 - 36, 26, 16, "RobotoBold", "bold");
   ctx.font = `bold ${teamSize}px RobotoBold`;
-  ctx.fillStyle = "rgba(236,240,247,0.94)";
-  ctx.fillText(teamText, infoTextX + 18, statY + 47);
+  ctx.fillStyle = theme.textPrimary;
+  ctx.fillText(teamText, infoTextX + 18, statY + statH - 20);
 
   const ctfSize = fitText(ctx, ctfText, infoTextW / 2 - 36, 26, 16, "RobotoBold", "bold");
   ctx.font = `bold ${ctfSize}px RobotoBold`;
-  ctx.fillText(ctfText, midX + 18, statY + 47);
+  ctx.fillText(ctfText, midX + 18, statY + statH - 20);
 
   ctx.font = "13px Roboto";
-  ctx.fillStyle = "rgba(236,240,247,0.48)";
-  ctx.fillText("Certified | Verified | Generated by rank-bot", cardX + 36, cardY + cardH - 16);
+  ctx.fillStyle = theme.textMuted;
+  ctx.fillText("Certified | Verified | Generated by rank-bot", cardX + 34, cardY + cardH - 18);
 
   return canvas.toBuffer("image/png");
 }

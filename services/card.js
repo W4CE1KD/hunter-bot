@@ -144,7 +144,7 @@ async function generateCard(user) {
   ctx.fillText(rankLabel, badgeX + 22, badgeY + 49);
 
   // ── LICENSE NO — top row left, same height as rank badge ────────────────
-  inlineField("License No. : ", licenseNo, contentX, badgeY + 49, 42);
+  inlineField("License : ", licenseNo, contentX, badgeY + 49, 42);
 
   // ── CONTENT FIELDS ────────────────────────────────────────────────────────
   divider(200);
@@ -154,8 +154,8 @@ async function generateCard(user) {
   inlineField("Category : ", category, contentX, 358, 48);
 
   divider(386);
-  inlineField("teamname : ", DEFAULT_TEAM, contentX, 448, 44);
-  inlineField("ctfs : ", DEFAULT_CTFS, contentX + 480, 448, 44);
+  inlineField("Team : ", DEFAULT_TEAM, contentX, 448, 44);
+  inlineField("CTF : ", DEFAULT_CTFS, contentX + 480, 448, 44);
 
   return canvas.toBuffer("image/png");
 }

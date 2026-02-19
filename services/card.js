@@ -1,4 +1,11 @@
-const { createCanvas } = require("canvas");
+const path = require("path");
+const { createCanvas, registerFont } = require("canvas");
+
+// REGISTER YOUR FONT
+registerFont(
+  path.join(__dirname, "../fonts/Roboto-Bold.ttf"),
+  { family: "Roboto" }
+);
 
 async function generateCard(user, rank) {
 
@@ -9,22 +16,22 @@ async function generateCard(user, rank) {
   ctx.fillStyle = "#0f172a";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // title
+  // TITLE
   ctx.fillStyle = "#ffffff";
-  ctx.font = "32px sans-serif";
+  ctx.font = "bold 32px Roboto";
   ctx.fillText("TRYHACKME HUNTER LICENSE", 220, 60);
 
-  // username
-  ctx.font = "28px sans-serif";
+  // USERNAME
+  ctx.font = "28px Roboto";
   ctx.fillText(`User: ${user.thmUsername}`, 220, 120);
 
-  // points
-  ctx.font = "24px sans-serif";
+  // POINTS
+  ctx.font = "24px Roboto";
   ctx.fillText(`Points: ${user.points}`, 220, 170);
 
-  // rank
+  // RANK
   ctx.fillStyle = "#00ff99";
-  ctx.font = "34px sans-serif";
+  ctx.font = "bold 34px Roboto";
   ctx.fillText(rank, 220, 230);
 
   return canvas.toBuffer();

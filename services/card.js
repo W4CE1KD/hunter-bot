@@ -20,21 +20,16 @@ async function generateCard(user) {
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
-  // ===== TEMPLATE =====
   const template = await loadImage(
-    path.join(__dirname, "../assets/license-template.png")
+    path.join(__dirname, "../assets/license-template-Photoroom.png")
   );
   ctx.drawImage(template, 0, 0, width, height);
 
-  // ===== AVATAR (BIGGER SIZE FIX) =====
+  // ===== AVATAR =====
   try {
     const avatar = await loadImage(user.avatar);
-
-    // bigger + centered in avatar box
     ctx.drawImage(avatar, 85, 150, 250, 300);
-  } catch {
-    console.log("avatar failed");
-  }
+  } catch {}
 
   ctx.fillStyle = "#111";
 
@@ -57,10 +52,30 @@ async function generateCard(user) {
   ctx.font = "bold 58px RobotoBold";
   ctx.fillText(user.thmUsername, 470, 335);
 
-  // ===== CATEGORY POSITION FIX =====
-  // moved to bottom category box
-  ctx.font = "bold 50px RobotoBold";
-  ctx.fillText("Hacker", 980, 520);
+  // ===== CATEGORY BOXES =====
+  ctx.strokeStyle = "#888";
+  ctx.lineWidth = 3;
+
+  const startX = 470;
+  const startY = 400;
+  const boxW = 220;
+  const boxH = 45;
+  const gap = 20;
+
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 3; col++) {
+      ctx.strokeRect(
+        startX + col * (boxW + gap),
+        startY + row * (boxH + 12),
+        boxW,
+        boxH
+      );
+    }
+  }
+
+  // ===== HACKER INSIDE BOX =====
+  ctx.font = "bold 42px RobotoBold";
+  ctx.fillText("Hacker", startX + 2 * (boxW + gap) + 50, startY + 85);
 
   return canvas.toBuffer("image/png");
 }

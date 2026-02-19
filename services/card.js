@@ -24,7 +24,7 @@ function getRankColor(rank) {
   }
 }
 
-const DEFAULT_TEAM = "morvax60";
+const DEFAULT_TEAM = "movrax60";
 const DEFAULT_CTFS = "10";
 
 async function generateCard(user) {

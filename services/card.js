@@ -55,16 +55,14 @@ async function generateCard(user) {
   const color     = getRankColor(rank);
   const category  = getCategory(rank);
 
-  // ── Avatar — tall, spanning full card content height ─────────────────────
-  // Card inner content area: top ~90, bottom ~590 → height ~500
-  const avatarX = 72;
-  const avatarY = 92;
-  const avatarW = 260;
-  const avatarH = 500;
+  // ── Avatar — image 2 style, slightly lower + a bit wider ─────────────────
+  const avatarX = 76;
+  const avatarY = 165;  // moved down a bit from 145
+  const avatarW = 275;  // slightly wider than 250
+  const avatarH = 310;
 
   try {
     const avatar = await loadImage(user.avatar);
-    // Rank-colored border
     ctx.strokeStyle = color;
     ctx.lineWidth   = 5;
     ctx.strokeRect(avatarX - 4, avatarY - 4, avatarW + 8, avatarH + 8);
@@ -72,7 +70,7 @@ async function generateCard(user) {
   } catch {}
 
   // Content starts after avatar
-  const contentX = avatarX + avatarW + 40; // ~372
+  const contentX = avatarX + avatarW + 40;
   const contentW = 750;
 
   // ── Helper: inline label (dark) + value (rank color) ─────────────────────
@@ -85,14 +83,14 @@ async function generateCard(user) {
     ctx.fillText(value, x + lw, y);
   }
 
-  // ── Helper: gradient fade divider line ───────────────────────────────────
+  // ── Helper: gradient fade divider ────────────────────────────────────────
   function divider(y) {
     ctx.save();
     const grad = ctx.createLinearGradient(contentX, y, contentX + contentW, y);
-    grad.addColorStop(0,   "rgba(0,0,0,0)");
+    grad.addColorStop(0,    "rgba(0,0,0,0)");
     grad.addColorStop(0.05, color + "55");
     grad.addColorStop(0.95, color + "55");
-    grad.addColorStop(1,   "rgba(0,0,0,0)");
+    grad.addColorStop(1,    "rgba(0,0,0,0)");
     ctx.strokeStyle = grad;
     ctx.lineWidth   = 1.5;
     ctx.beginPath();
@@ -127,6 +125,7 @@ async function generateCard(user) {
   ctx.closePath();
   ctx.fill();
   ctx.globalAlpha = 1;
+
   ctx.strokeStyle = color;
   ctx.lineWidth   = 2;
   ctx.globalAlpha = 0.8;
@@ -141,18 +140,18 @@ async function generateCard(user) {
   ctx.fillText(rankLabel, badgeX + 22, badgeY + 49);
 
   // ── CONTENT FIELDS ────────────────────────────────────────────────────────
-  divider(195);
-  inlineField("License No. : ", licenseNo, contentX, 255, 48);
+  divider(200);
+  inlineField("License No. : ", licenseNo, contentX, 260, 48);
 
-  divider(283);
-  inlineField("Name : ", `[${user.thmUsername}]`, contentX, 348, 56);
+  divider(288);
+  inlineField("Name : ", `[${user.thmUsername}]`, contentX, 352, 56);
 
-  divider(378);
-  inlineField("Category : ", category, contentX, 438, 48);
+  divider(380);
+  inlineField("Category : ", category, contentX, 440, 48);
 
-  divider(465);
-  inlineField("teamname : ", DEFAULT_TEAM, contentX, 528, 44);
-  inlineField("ctfs : ", DEFAULT_CTFS, contentX + 480, 528, 44);
+  divider(468);
+  inlineField("teamname : ", DEFAULT_TEAM, contentX, 530, 44);
+  inlineField("ctfs : ", DEFAULT_CTFS, contentX + 480, 530, 44);
 
   return canvas.toBuffer("image/png");
 }

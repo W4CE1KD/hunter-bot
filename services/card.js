@@ -16,7 +16,7 @@ async function generateCard(user, rank) {
   const canvas = createCanvas(1000, 600);
   const ctx = canvas.getContext("2d");
 
-  // ===== LOAD TEMPLATE =====
+  // ===== TEMPLATE =====
   const template = await loadImage(
     path.join(__dirname, "../assets/license-template.png")
   );
@@ -28,37 +28,34 @@ async function generateCard(user, rank) {
     try {
       const avatar = await loadImage(user.avatar);
 
-      // avatar area (left box)
-      ctx.drawImage(avatar, 90, 150, 220, 260);
+      // PERFECT FIT INSIDE FRAME
+      ctx.drawImage(avatar, 90, 160, 220, 260);
 
     } catch (e) {
-      console.log("avatar failed");
+      console.log("avatar error");
     }
   }
 
-  // ===== TEXT =====
-
+  // ===== TEXT STYLE =====
   ctx.fillStyle = "#111";
-  ctx.font = "bold 36px Roboto";
 
-  // name
-  ctx.fillText(user.thmUsername, 430, 290);
-
-  // rank letter
-  ctx.font = "bold 50px Roboto";
-  ctx.fillText(rank.replace("-RANK",""), 760, 210);
-
-  // fake license number
+  // LICENSE NUMBER
   ctx.font = "28px Roboto";
-  ctx.fillText(
-    String(user.points).padStart(12, "0"),
-    430,
-    210
-  );
+  const licenseNo = String(user.points).padStart(12, "0");
+  ctx.fillText(licenseNo, 430, 240);
 
-  // category example
-  ctx.font = "24px Roboto";
-  ctx.fillText("Hacker", 780, 390);
+  // RANK LETTER ONLY
+  ctx.font = "bold 60px Roboto";
+  const rankLetter = rank.replace("-RANK", "");
+  ctx.fillText(rankLetter, 675, 240);
+
+  // NAME (FIXED POSITION)
+  ctx.font = "bold 42px Roboto";
+  ctx.fillText(user.thmUsername, 430, 330);
+
+  // CATEGORY
+  ctx.font = "bold 34px Roboto";
+  ctx.fillText("Hacker", 780, 430);
 
   return canvas.toBuffer();
 }

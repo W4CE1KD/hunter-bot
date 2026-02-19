@@ -57,7 +57,7 @@ async function generateCard(user) {
 
   // ── Avatar — image 2 style, slightly lower + a bit wider ─────────────────
   const avatarX = 76;
-  const avatarY = 165;  // moved down a bit from 145
+  const avatarY = 195;  // moved down a bit from 145
   const avatarW = 275;  // slightly wider than 250
   const avatarH = 310;
 

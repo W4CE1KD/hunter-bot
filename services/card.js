@@ -102,7 +102,7 @@ async function generateCard(user) {
 
     // Measure value for badge size
     const vw      = ctx.measureText(value).width;
-    const padX    = 16, padY = 10;
+    const padX    = 26, padY = 14;
     const badgeH  = fontSize + padY * 2;
     const valueX  = x + lw;
     const badgeY  = y - fontSize - padY + 6;

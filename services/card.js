@@ -132,7 +132,7 @@ async function generateCard(user) {
   const rankLabel = `[ ${rank} ]`;
   ctx.font = "bold 54px RobotoBold";
   const rankTextW = ctx.measureText(rankLabel).width;
-  const badgeW = rankTextW + 44, badgeH = 68, badgeX = 1120 - rankTextW - 44, badgeY = 98;
+  const badgeW = rankTextW + 44, badgeH = 68, badgeX = 1170 - rankTextW - 44, badgeY = 98;
 
   drawBadge(badgeX, badgeY, badgeW, badgeH, 10);
 
@@ -144,7 +144,7 @@ async function generateCard(user) {
   ctx.fillText(rankLabel, badgeX + 22, badgeY + 49);
 
   // ── LICENSE NO — top row left, same height as rank badge ────────────────
-  inlineField("License No. : ", licenseNo, contentX, badgeY + 49, 48);
+  inlineField("License No. : ", licenseNo, contentX, badgeY + 49, 42);
 
   // ── CONTENT FIELDS ────────────────────────────────────────────────────────
   divider(200);

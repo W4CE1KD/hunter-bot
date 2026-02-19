@@ -32,44 +32,46 @@ async function generateCard(user) {
   // ===== AVATAR =====
   try {
     const avatar = await loadImage(user.avatar);
-    ctx.drawImage(avatar, 80, 145, 260, 300);
+    ctx.drawImage(avatar, 75, 145, 255, 300);
   } catch {}
 
   ctx.fillStyle = "#111";
-
-  // ===== HEADINGS =====
-  ctx.font = "bold 42px RobotoBold";
-  ctx.fillText("License No.", 470, 180);
-  ctx.fillText("Category:", 470, 380);
-
-  // ===== BOXES =====
   ctx.strokeStyle = "#9aa3af";
   ctx.lineWidth = 3;
 
-  // license box
-  ctx.strokeRect(470, 195, 330, 55);
+  // ===== HEADINGS =====
+  ctx.font = "bold 48px RobotoBold";
+  ctx.fillText("License No.", 460, 175);
+  ctx.fillText("Name:", 460, 275);
+  ctx.fillText("Category:", 460, 375);
 
-  // name box
-  ctx.strokeRect(470, 295, 700, 55);
+  // ===== BOXES =====
+
+  // License box
+  ctx.strokeRect(460, 190, 340, 58);
+
+  // Name box (ONLY username inside)
+  ctx.strokeRect(460, 290, 720, 58);
 
   // ===== VALUES =====
   const licenseNo = String(user.points).padStart(10, "0");
   const rank = getRank(user.points);
 
+  // License number
   ctx.font = "bold 52px RobotoBold";
-  ctx.fillText(licenseNo, 480, 238);
+  ctx.fillText(licenseNo, 475, 235);
 
-  // ===== NAME INLINE (FIXED) =====
-  ctx.font = "bold 58px RobotoBold";
-  ctx.fillText(`Name : ${user.thmUsername}`, 480, 338);
-
-  // ===== RANK INLINE =====
+  // Rank INLINE
   ctx.font = "bold 64px RobotoBold";
-  ctx.fillText(`Rank : ${rank}`, 860, 235);
+  ctx.fillText(`Rank : ${rank}`, 820, 235);
+
+  // NAME ONLY (inside box)
+  ctx.font = "bold 58px RobotoBold";
+  ctx.fillText(user.thmUsername, 475, 335);
 
   // ===== CATEGORY GRID =====
-  const startX = 470;
-  const startY = 410;
+  const startX = 460;
+  const startY = 405;
   const boxW = 220;
   const boxH = 45;
   const gap = 20;
@@ -85,7 +87,7 @@ async function generateCard(user) {
     }
   }
 
-  // ===== HACKER TEXT CENTER =====
+  // ===== HACKER TEXT (FIRST BOX CENTER) =====
   ctx.font = "bold 40px RobotoBold";
   const text = "Hacker";
 

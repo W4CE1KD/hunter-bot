@@ -24,7 +24,18 @@ function getRankColor(rank) {
   }
 }
 
-const DEFAULT_TEAM = "movrax60";
+function getCategory(rank) {
+  switch (rank) {
+    case "S": return "Omniscient";
+    case "A": return "Guru";
+    case "B": return "Elite Hacker";
+    case "C": return "Pro Hacker";
+    case "D": return "Hacker";
+    default:  return "Script Kiddie"; // E
+  }
+}
+
+const DEFAULT_TEAM = "morvax60";
 const DEFAULT_CTFS = "10";
 
 async function generateCard(user) {
@@ -46,6 +57,7 @@ async function generateCard(user) {
   const licenseNo = String(user.points).padStart(10, "0");
   const rank      = getRank(user.points);
   const color     = getRankColor(rank);
+  const category  = getCategory(rank);
 
   function inlineField(label, value, x, y, fontSize = 52) {
     ctx.font      = `bold ${fontSize}px RobotoBold`;
@@ -56,21 +68,21 @@ async function generateCard(user) {
     ctx.fillText(value, x + lw, y);
   }
 
-  // ── RANK — top right, moved down a bit ───────────────────────────────────
+  // ── RANK — top right ──────────────────────────────────────────────────────
   inlineField("Rank : ", `[ ${rank} ]`, 920, 145, 48);
 
   // ── LICENSE NO ───────────────────────────────────────────────────────────
-  inlineField("License No : ", licenseNo, 460, 220, 52);
+  inlineField("License No. : ", licenseNo, 460, 220, 52);
 
   // ── NAME ─────────────────────────────────────────────────────────────────
   inlineField("Name : ", `[${user.thmUsername}]`, 460, 310, 56);
 
-  // ── CATEGORY ─────────────────────────────────────────────────────────────
-  inlineField("Category : ", user.category || "Hacker", 460, 395, 48);
+  // ── CATEGORY (auto based on rank) ────────────────────────────────────────
+  inlineField("Category : ", category, 460, 395, 48);
 
-  // ── TEAMNAME (left) + CTFs (right) — bigger gap ──────────────────────────
+  // ── TEAMNAME (left) + CTFs (right) ───────────────────────────────────────
   inlineField("teamname : ", DEFAULT_TEAM, 460, 475, 44);
-  inlineField("ctfs : ", DEFAULT_CTFS, 950, 475, 44);  // pushed further right
+  inlineField("ctfs : ", DEFAULT_CTFS, 950, 475, 44);
 
   return canvas.toBuffer("image/png");
 }

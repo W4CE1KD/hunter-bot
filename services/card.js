@@ -20,41 +20,44 @@ async function generateCard(user) {
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
-  // ===== LOAD TEMPLATE =====
+  // ===== TEMPLATE =====
   const template = await loadImage(
-    path.join(__dirname, "../assets/license-template.png")
+    path.join(__dirname, "../assets/license-template-Photoroom.png")
   );
   ctx.drawImage(template, 0, 0, width, height);
 
   // ===== AVATAR =====
   try {
     const avatar = await loadImage(user.avatar);
-
-    // avatar box position (LEFT BOX)
     ctx.drawImage(avatar, 95, 170, 210, 260);
-  } catch (e) {
-    console.log("avatar load failed");
+  } catch {
+    console.log("avatar failed");
   }
 
-  // ===== TEXT STYLE =====
   ctx.fillStyle = "#111";
-  ctx.font = "bold 46px RobotoBold";
 
-  // ===== LICENSE NUMBER =====
+  // ===== HEADINGS =====
+  ctx.font = "34px RobotoBold";
+  ctx.fillText("License No.", 460, 180);
+  ctx.fillText("Rank:", 860, 180);
+  ctx.fillText("Name:", 460, 280);
+  ctx.fillText("Category:", 460, 380);
+
+  // ===== VALUES =====
   const licenseNo = String(user.points).padStart(10, "0");
-  ctx.fillText(licenseNo, 460, 250);
 
-  // ===== RANK =====
+  ctx.font = "bold 46px RobotoBold";
+  ctx.fillText(licenseNo, 460, 235);
+
   ctx.font = "bold 64px RobotoBold";
-  ctx.fillText(getRank(user.points), 860, 250);
+  ctx.fillText(getRank(user.points), 860, 235);
 
-  // ===== NAME =====
-  ctx.font = "bold 48px RobotoBold";
-  ctx.fillText(user.thmUsername, 460, 340);
+  ctx.font = "bold 52px RobotoBold";
+  ctx.fillText(user.thmUsername, 460, 335);
 
-  // ===== CATEGORY =====
-  ctx.font = "bold 44px RobotoBold";
-  ctx.fillText("Hacker", 860, 520);
+  // ===== CATEGORY VALUE =====
+  ctx.font = "bold 50px RobotoBold";
+  ctx.fillText("Hacker", 900, 520);
 
   return canvas.toBuffer("image/png");
 }

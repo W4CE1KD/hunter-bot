@@ -32,7 +32,7 @@ client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
   if (message.channel.id !== process.env.ALLOWED_CHANNEL) return;
 
-  const args = message.content.split(" ");
+  const args = message.content.trim().split(" ");
   const command = args[0];
 
   // LINK ACCOUNT
@@ -59,10 +59,13 @@ client.on("messageCreate", async (message) => {
     return message.reply("THM account linked successfully.");
   }
 
-  // RANK
+  // RANK COMMAND
   if (command === "!rank") {
 
-    const user = await User.findOne({ discordId: message.author.id });
+    const user = await User.findOne({
+      discordId: message.author.id
+    });
+
     if (!user) return message.reply("Use !setthm first.");
 
     queue.add(async () => {
@@ -79,7 +82,7 @@ client.on("messageCreate", async (message) => {
   }
 });
 
-// AUTO UPDATE
+// AUTO UPDATE EVERY 6 HOURS
 cron.schedule("0 */6 * * *", async () => {
 
   const users = await User.find();

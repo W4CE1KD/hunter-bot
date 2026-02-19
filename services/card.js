@@ -56,31 +56,21 @@ async function generateCard(user) {
     ctx.fillText(value, x + lw, y);
   }
 
-  // ── LICENSE NO ───────────────────────────────────────────────────────────
-  ctx.fillStyle = "#111";
-  ctx.font      = "bold 48px RobotoBold";
-  ctx.fillText("License No.", 460, 170);
+  // ── LICENSE NO (inline, same style as name) ───────────────────────────────
+  inlineField("License No. : ", licenseNo, 460, 210, 52);
 
-  ctx.strokeStyle = "#9aa3af";
-  ctx.lineWidth   = 3;
-  ctx.strokeRect(460, 185, 330, 58);
+  // ── RANK (right side, same row as license) ────────────────────────────────
+  inlineField("Rank : ", `[ ${rank} ]`, 880, 210, 52);
 
-  ctx.fillStyle = "#111";
-  ctx.font      = "bold 52px RobotoBold";
-  ctx.fillText(licenseNo, 475, 230);
-
-  // ── RANK (right of license box) ──────────────────────────────────────────
-  inlineField("Rank : ", `[ ${rank} ]`, 830, 210, 52);
-
-  // ── NAME (left) + CTFs (right, same row) ─────────────────────────────────
-  inlineField("Name : ", `[${user.thmUsername}]`, 460, 330, 56);
-  inlineField("ctfs : ", String(user.ctfs ?? "0"), 880, 330, 56);
+  // ── NAME ─────────────────────────────────────────────────────────────────
+  inlineField("Name : ", `[${user.thmUsername}]`, 460, 310, 56);
 
   // ── CATEGORY ─────────────────────────────────────────────────────────────
-  inlineField("Category : ", user.category || "Hacker", 460, 410, 48);
+  inlineField("Category : ", user.category || "Hacker", 460, 390, 48);
 
-  // ── TEAMNAME ─────────────────────────────────────────────────────────────
-  inlineField("teamname : ", user.teamName || "—", 460, 480, 44);
+  // ── TEAMNAME (left) + CTFs (right, same row) ──────────────────────────────
+  inlineField("teamname : ", user.teamName || "—", 460, 470, 44);
+  inlineField("ctfs : ", String(user.ctfs ?? "0"), 850, 470, 44);
 
   return canvas.toBuffer("image/png");
 }

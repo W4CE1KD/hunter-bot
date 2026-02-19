@@ -103,8 +103,8 @@ async function generateCard(user) {
     const valueX  = x + lw;
     const badgeY  = y - fontSize - padY + 6;
 
-    // Draw badge behind value
-    drawBadge(valueX - padX, badgeY, vw + padX * 2, badgeH);
+    // Draw badge behind value only — small left pad, normal right pad
+    drawBadge(valueX - 8, badgeY, vw + 8 + padX, badgeH);
 
     // Draw value text
     ctx.fillStyle = color;

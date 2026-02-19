@@ -46,7 +46,7 @@ async function generateCard(user) {
   const rank      = getRank(user.points);
   const color     = getRankColor(rank);
 
-  // helper: draw "Label : " in black + value in rank color inline
+  // helper: "Label : " black + value in rank color
   function inlineField(label, value, x, y, fontSize = 52) {
     ctx.font      = `bold ${fontSize}px RobotoBold`;
     ctx.fillStyle = "#111";
@@ -69,20 +69,18 @@ async function generateCard(user) {
   ctx.font      = "bold 52px RobotoBold";
   ctx.fillText(licenseNo, 475, 230);
 
-  // ── RANK — same inline style as Name ─────────────────────────────────────
+  // ── RANK (right of license box) ──────────────────────────────────────────
   inlineField("Rank : ", `[ ${rank} ]`, 830, 210, 52);
 
-  // ── NAME ─────────────────────────────────────────────────────────────────
+  // ── NAME (left) + CTFs (right, same row) ─────────────────────────────────
   inlineField("Name : ", `[${user.thmUsername}]`, 460, 330, 56);
+  inlineField("ctfs : ", String(user.ctfs ?? "0"), 880, 330, 56);
 
   // ── CATEGORY ─────────────────────────────────────────────────────────────
-  inlineField("Category : ", user.category || "Hacker", 460, 400, 48);
+  inlineField("Category : ", user.category || "Hacker", 460, 410, 48);
 
   // ── TEAMNAME ─────────────────────────────────────────────────────────────
-  inlineField("teamname : ", user.teamName || "—", 460, 470, 44);
-
-  // ── CTFs — same inline style as Name ─────────────────────────────────────
-  inlineField("ctfs : ", String(user.ctfs ?? "0"), 460, 530, 44);
+  inlineField("teamname : ", user.teamName || "—", 460, 480, 44);
 
   return canvas.toBuffer("image/png");
 }

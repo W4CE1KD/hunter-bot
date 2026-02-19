@@ -64,7 +64,7 @@ async function generateCard(user) {
     ctx.drawImage(avatar, avatarX, avatarY, avatarW, avatarH);
   } catch {}
 
-  const contentX = avatarX + avatarW + 40;
+  const contentX = avatarX + avatarW + 15;
   const contentW = 750;
 
   // ── Helper: draw a rounded pill badge behind text ─────────────────────────

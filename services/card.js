@@ -84,10 +84,6 @@ async function generateCard(user) {
     ctx.quadraticCurveTo(x, y, x + r, y);
     ctx.closePath();
     ctx.fill();
-    ctx.globalAlpha = 0.7;
-    ctx.strokeStyle = color;
-    ctx.lineWidth   = 1.5;
-    ctx.stroke();
     ctx.restore();
   }
 
@@ -149,7 +145,7 @@ async function generateCard(user) {
 
   // ── CONTENT FIELDS ────────────────────────────────────────────────────────
   divider(200);
-  inlineField("License No : ", licenseNo, contentX, 260, 48);
+  inlineField("License No. : ", licenseNo, contentX, 260, 48);
 
   divider(288);
   inlineField("Name : ", `[${user.thmUsername}]`, contentX, 352, 56);

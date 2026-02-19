@@ -26,10 +26,12 @@ async function generateCard(user) {
   );
   ctx.drawImage(template, 0, 0, width, height);
 
-  // ===== AVATAR =====
+  // ===== AVATAR (BIGGER SIZE FIX) =====
   try {
     const avatar = await loadImage(user.avatar);
-    ctx.drawImage(avatar, 95, 170, 210, 260);
+
+    // bigger + centered in avatar box
+    ctx.drawImage(avatar, 85, 150, 250, 300);
   } catch {
     console.log("avatar failed");
   }
@@ -37,27 +39,28 @@ async function generateCard(user) {
   ctx.fillStyle = "#111";
 
   // ===== HEADINGS =====
-  ctx.font = "34px RobotoBold";
-  ctx.fillText("License No.", 460, 180);
+  ctx.font = "bold 42px RobotoBold";
+  ctx.fillText("License No.", 470, 180);
   ctx.fillText("Rank:", 860, 180);
-  ctx.fillText("Name:", 460, 280);
-  ctx.fillText("Category:", 460, 380);
+  ctx.fillText("Name:", 470, 280);
+  ctx.fillText("Category:", 470, 380);
 
   // ===== VALUES =====
   const licenseNo = String(user.points).padStart(10, "0");
 
-  ctx.font = "bold 46px RobotoBold";
-  ctx.fillText(licenseNo, 460, 235);
+  ctx.font = "bold 52px RobotoBold";
+  ctx.fillText(licenseNo, 470, 235);
 
-  ctx.font = "bold 64px RobotoBold";
+  ctx.font = "bold 72px RobotoBold";
   ctx.fillText(getRank(user.points), 860, 235);
 
-  ctx.font = "bold 52px RobotoBold";
-  ctx.fillText(user.thmUsername, 460, 335);
+  ctx.font = "bold 58px RobotoBold";
+  ctx.fillText(user.thmUsername, 470, 335);
 
-  // ===== CATEGORY VALUE =====
+  // ===== CATEGORY POSITION FIX =====
+  // moved to bottom category box
   ctx.font = "bold 50px RobotoBold";
-  ctx.fillText("Hacker", 900, 520);
+  ctx.fillText("Hacker", 980, 520);
 
   return canvas.toBuffer("image/png");
 }

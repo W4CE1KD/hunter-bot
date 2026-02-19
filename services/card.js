@@ -77,36 +77,42 @@ async function generateCard(user) {
   ctx.fillStyle = color;
   ctx.fillText(`[${user.thmUsername}]`, 460 + prefixW, 330);
 
-  // ── CATEGORY ─────────────────────────────────────────────────────────────
+  // ── CATEGORY (label + value, no boxes, same style as name) ───────────────
   ctx.fillStyle = "#111";
-  ctx.font      = "bold 52px RobotoBold";
-  ctx.fillText("Category", 460, 400);
+  ctx.font      = "bold 48px RobotoBold";
+  ctx.fillText("Category : ", 460, 400);
 
-  const startX = 460, startY = 420;
-  const boxW   = 250,  boxH  = 45,  gap = 25;
-
-  ctx.strokeStyle = "#9aa3af";
-  ctx.lineWidth   = 3;
-
-  for (let row = 0; row < 3; row++) {
-    for (let col = 0; col < 2; col++) {
-      ctx.strokeRect(
-        startX + col * (boxW + gap),
-        startY + row * (boxH + 12),
-        boxW,
-        boxH
-      );
-    }
-  }
-
-  // "Hacker" text in rank color
+  const catPrefixW = ctx.measureText("Category : ").width;
   ctx.fillStyle = color;
+  ctx.font      = "bold 48px RobotoBold";
+  ctx.fillText(user.category || "Hacker", 460 + catPrefixW, 400);
+
+  // ── TEAM NAME  |  CTFs ───────────────────────────────────────────────────
+  // Left column: teamname
+  const leftX  = 460;
+  const rightX = 800;  // right column start
+  const labelY = 470;  // label row
+  const valueY = 525;  // value row
+
+  // teamname label
+  ctx.fillStyle = "#111";
   ctx.font      = "bold 40px RobotoBold";
-  const txt = "Hacker";
-  const tw  = ctx.measureText(txt).width;
-  const tx  = startX + (boxW - tw) / 2;
-  const ty  = startY + boxH / 2 + 14;
-  ctx.fillText(txt, tx, ty);
+  ctx.fillText("teamname :", leftX, labelY);
+
+  // teamname value in rank color
+  ctx.fillStyle = color;
+  ctx.font      = "bold 44px RobotoBold";
+  ctx.fillText(user.teamName || "—", leftX, valueY);
+
+  // ctfs label
+  ctx.fillStyle = "#111";
+  ctx.font      = "bold 40px RobotoBold";
+  ctx.fillText("ctfs :", rightX, labelY);
+
+  // ctfs value in rank color
+  ctx.fillStyle = color;
+  ctx.font      = "bold 44px RobotoBold";
+  ctx.fillText(String(user.ctfs ?? "0"), rightX, valueY);
 
   return canvas.toBuffer("image/png");
 }

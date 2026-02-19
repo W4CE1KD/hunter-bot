@@ -15,14 +15,34 @@ const { getRank } = require("./services/rank");
 
 const DATA_PATH = path.join(__dirname, "data", "users.json");
 
+// ======================
+// JSON FILE HELPERS
+// ======================
+
+function ensureDataFile() {
+  if (!fs.existsSync(DATA_PATH)) {
+    fs.writeFileSync(DATA_PATH, JSON.stringify({}, null, 2));
+  }
+}
+
 function loadUsers() {
-  if (!fs.existsSync(DATA_PATH)) return {};
-  return JSON.parse(fs.readFileSync(DATA_PATH));
+  ensureDataFile();
+  const raw = fs.readFileSync(DATA_PATH, "utf-8");
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
 }
 
 function saveUsers(data) {
   fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
 }
+
+// ======================
+// DISCORD CLIENT
+// ======================
 
 const client = new Client({
   intents: [
@@ -33,8 +53,12 @@ const client = new Client({
 });
 
 client.once("ready", () => {
-  console.log("Bot online:", client.user.tag);
+  console.log(`Bot online: ${client.user.tag}`);
 });
+
+// ======================
+// COMMAND HANDLER
+// ======================
 
 client.on("messageCreate", async (message) => {
 
@@ -48,12 +72,14 @@ client.on("messageCreate", async (message) => {
 
   const users = loadUsers();
 
-  // ==========================
+  // ======================
   // LINK THM USER
-  // ==========================
+  // !setthm username
+  // ======================
   if (cmd === "!setthm") {
 
     const username = args[1];
+
     if (!username)
       return message.reply("Usage: !setthm username");
 
@@ -68,36 +94,38 @@ client.on("messageCreate", async (message) => {
     return message.reply("THM account linked.");
   }
 
-  // ==========================
+  // ======================
   // ADMIN UPDATE POINTS
-  // ==========================
+  // !update @user points
+  // ======================
   if (cmd === "!update") {
 
     if (!message.member.permissions.has(
       PermissionsBitField.Flags.Administrator
     )) {
-      return;
+      return message.reply("Admin only command.");
     }
 
-    const user = message.mentions.users.first();
+    const target = message.mentions.users.first();
     const points = parseInt(args[2]);
 
-    if (!user || isNaN(points))
+    if (!target || isNaN(points))
       return message.reply("Usage: !update @user points");
 
-    if (!users[user.id])
+    if (!users[target.id])
       return message.reply("User not linked.");
 
-    users[user.id].points = points;
+    users[target.id].points = points;
 
     saveUsers(users);
 
     return message.reply("Points updated.");
   }
 
-  // ==========================
+  // ======================
   // SHOW RANK CARD
-  // ==========================
+  // !rank
+  // ======================
   if (cmd === "!rank") {
 
     const user = users[message.author.id];

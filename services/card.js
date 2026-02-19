@@ -1,61 +1,67 @@
+// services/card.js
+const { createCanvas, loadImage, registerFont } = require("canvas");
 const path = require("path");
-const {
-  createCanvas,
-  registerFont,
-  loadImage
-} = require("canvas");
 
-// font
-registerFont(
-  path.join(__dirname, "../fonts/Roboto-Bold.ttf"),
-  { family: "Roboto" }
-);
+// ===== FONT =====
+registerFont(path.join(__dirname, "../fonts/Roboto-Bold.ttf"), {
+  family: "RobotoBold",
+});
 
-async function generateCard(user, rank) {
+// ===== RANK LOGIC =====
+function getRank(points) {
+  if (points >= 120000) return "S";
+  if (points >= 90000) return "A";
+  if (points >= 60000) return "B";
+  if (points >= 30000) return "C";
+  return "D";
+}
 
-  const canvas = createCanvas(1000, 600);
+async function generateCard(user) {
+  // TEMPLATE SIZE (IMPORTANT)
+  const width = 1536;
+  const height = 864;
+
+  const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
-  // ===== TEMPLATE =====
+  // ===== LOAD TEMPLATE =====
   const template = await loadImage(
     path.join(__dirname, "../assets/license-template.png")
   );
-
-  ctx.drawImage(template, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(template, 0, 0, width, height);
 
   // ===== AVATAR =====
-  if (user.avatar) {
-    try {
-      const avatar = await loadImage(user.avatar);
+  try {
+    const avatar = await loadImage(user.avatar);
 
-      // PERFECT FIT INSIDE FRAME
-      ctx.drawImage(avatar, 90, 160, 220, 260);
-
-    } catch (e) {
-      console.log("avatar error");
-    }
+    // exact avatar box from template
+    ctx.drawImage(avatar, 120, 200, 230, 300);
+  } catch (e) {
+    console.log("Avatar failed to load");
   }
 
   // ===== TEXT STYLE =====
   ctx.fillStyle = "#111";
+  ctx.font = "bold 48px RobotoBold";
 
   // LICENSE NUMBER
-  ctx.font = "28px Roboto";
-  const licenseNo = String(user.points).padStart(12, "0");
-  ctx.fillText(licenseNo, 430, 240);
+  ctx.fillText(
+    String(user.points).padStart(10, "0"),
+    430,
+    355
+  );
 
-  // RANK LETTER ONLY
-  ctx.font = "bold 60px Roboto";
-  const rankLetter = rank.replace("-RANK", "");
-  ctx.fillText(rankLetter, 675, 240);
+  // RANK LETTER
+  ctx.font = "bold 72px RobotoBold";
+  ctx.fillText(getRank(user.points), 650, 360);
 
-  // NAME (FIXED POSITION)
-  ctx.font = "bold 42px Roboto";
-  ctx.fillText(user.thmUsername, 430, 330);
+  // USERNAME
+  ctx.font = "bold 56px RobotoBold";
+  ctx.fillText(user.thmUsername, 430, 470);
 
-  // CATEGORY
-  ctx.font = "bold 34px Roboto";
-  ctx.fillText("Hacker", 780, 430);
+  // CATEGORY (bottom right box)
+  ctx.font = "bold 48px RobotoBold";
+  ctx.fillText("Hacker", 1040, 620);
 
   return canvas.toBuffer();
 }

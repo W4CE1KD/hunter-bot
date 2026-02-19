@@ -55,18 +55,25 @@ async function generateCard(user) {
   const color     = getRankColor(rank);
   const category  = getCategory(rank);
 
-  // Content area starts after avatar (avatar: x=80, w=250 → ends at 330)
-  const contentX = 390;
-  const contentW = 740; // ends around x=1130
+  // ── Avatar — tall, spanning full card content height ─────────────────────
+  // Card inner content area: top ~90, bottom ~590 → height ~500
+  const avatarX = 72;
+  const avatarY = 92;
+  const avatarW = 260;
+  const avatarH = 500;
 
-  // ── Avatar with rank-colored border ──────────────────────────────────────
   try {
     const avatar = await loadImage(user.avatar);
+    // Rank-colored border
     ctx.strokeStyle = color;
     ctx.lineWidth   = 5;
-    ctx.strokeRect(76, 141, 258, 308);
-    ctx.drawImage(avatar, 80, 145, 250, 300);
+    ctx.strokeRect(avatarX - 4, avatarY - 4, avatarW + 8, avatarH + 8);
+    ctx.drawImage(avatar, avatarX, avatarY, avatarW, avatarH);
   } catch {}
+
+  // Content starts after avatar
+  const contentX = avatarX + avatarW + 40; // ~372
+  const contentW = 750;
 
   // ── Helper: inline label (dark) + value (rank color) ─────────────────────
   function inlineField(label, value, x, y, fontSize = 52) {
@@ -78,14 +85,13 @@ async function generateCard(user) {
     ctx.fillText(value, x + lw, y);
   }
 
-  // ── Helper: clean divider — just a simple faded line, NO dots ────────────
+  // ── Helper: gradient fade divider line ───────────────────────────────────
   function divider(y) {
     ctx.save();
-    // Gradient line that fades at both ends
     const grad = ctx.createLinearGradient(contentX, y, contentX + contentW, y);
     grad.addColorStop(0,   "rgba(0,0,0,0)");
-    grad.addColorStop(0.1, color + "55");
-    grad.addColorStop(0.9, color + "55");
+    grad.addColorStop(0.05, color + "55");
+    grad.addColorStop(0.95, color + "55");
     grad.addColorStop(1,   "rgba(0,0,0,0)");
     ctx.strokeStyle = grad;
     ctx.lineWidth   = 1.5;
@@ -96,7 +102,7 @@ async function generateCard(user) {
     ctx.restore();
   }
 
-  // ── RANK BADGE — top right (untouched) ───────────────────────────────────
+  // ── RANK BADGE — top right ────────────────────────────────────────────────
   const rankLabel = `[ ${rank} ]`;
   ctx.font = "bold 54px RobotoBold";
   const rankTextW = ctx.measureText(rankLabel).width;
@@ -106,7 +112,6 @@ async function generateCard(user) {
   const badgeY    = 98;
   const br        = 10;
 
-  // Badge fill
   ctx.fillStyle   = color;
   ctx.globalAlpha = 0.12;
   ctx.beginPath();
@@ -122,48 +127,32 @@ async function generateCard(user) {
   ctx.closePath();
   ctx.fill();
   ctx.globalAlpha = 1;
-
-  // Badge border
   ctx.strokeStyle = color;
   ctx.lineWidth   = 2;
   ctx.globalAlpha = 0.8;
   ctx.stroke();
   ctx.globalAlpha = 1;
 
-  // "Rank :" label
   ctx.font      = "bold 38px RobotoBold";
   ctx.fillStyle = "#1e293b";
   ctx.fillText("Rank :", badgeX - 130, badgeY + 45);
-
-  // Rank value inside badge
   ctx.font      = "bold 54px RobotoBold";
   ctx.fillStyle = color;
   ctx.fillText(rankLabel, badgeX + 22, badgeY + 49);
 
-  // ── DIVIDER 1 ─────────────────────────────────────────────────────────────
-  divider(192);
+  // ── CONTENT FIELDS ────────────────────────────────────────────────────────
+  divider(195);
+  inlineField("License No. : ", licenseNo, contentX, 255, 48);
 
-  // ── LICENSE NO ───────────────────────────────────────────────────────────
-  inlineField("License No. : ", licenseNo, contentX, 252, 48);
+  divider(283);
+  inlineField("Name : ", `[${user.thmUsername}]`, contentX, 348, 56);
 
-  // ── DIVIDER 2 ─────────────────────────────────────────────────────────────
-  divider(278);
+  divider(378);
+  inlineField("Category : ", category, contentX, 438, 48);
 
-  // ── NAME ─────────────────────────────────────────────────────────────────
-  inlineField("Name : ", `[${user.thmUsername}]`, contentX, 342, 56);
-
-  // ── DIVIDER 3 ─────────────────────────────────────────────────────────────
-  divider(370);
-
-  // ── CATEGORY ─────────────────────────────────────────────────────────────
-  inlineField("Category : ", category, contentX, 432, 48);
-
-  // ── DIVIDER 4 ─────────────────────────────────────────────────────────────
-  divider(458);
-
-  // ── TEAMNAME (left) + CTFs (right) ───────────────────────────────────────
-  inlineField("teamname : ", DEFAULT_TEAM, contentX, 522, 44);
-  inlineField("ctfs : ", DEFAULT_CTFS, contentX + 480, 522, 44);
+  divider(465);
+  inlineField("teamname : ", DEFAULT_TEAM, contentX, 528, 44);
+  inlineField("ctfs : ", DEFAULT_CTFS, contentX + 480, 528, 44);
 
   return canvas.toBuffer("image/png");
 }

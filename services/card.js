@@ -1,111 +1,94 @@
-// services/card.js
-
-const { createCanvas, loadImage } = require("canvas");
+const { createCanvas, loadImage, registerFont } = require("canvas");
 const path = require("path");
 
-/*
-Expected user object:
-{
-  name: "m33nan",
-  rank: "A",
-  license: "0000136839",
-  avatar: "https://....",
-  category: "Hacker"
-}
-*/
+registerFont(path.join(__dirname, "../fonts/Roboto-Bold.ttf"), {
+  family: "RobotoBold",
+});
 
-module.exports = async function generateCard(user) {
+function getRank(points) {
+  if (points >= 150000) return "S";
+  if (points >= 100000) return "A";
+  if (points >= 50000) return "B";
+  if (points >= 20000) return "C";
+  return "D";
+}
+
+async function generateCard(user) {
   const width = 1280;
   const height = 720;
 
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
-  // =========================
-  // LOAD TEMPLATE
-  // =========================
   const template = await loadImage(
     path.join(__dirname, "../assets/license-template.png")
   );
+
   ctx.drawImage(template, 0, 0, width, height);
 
-  // =========================
-  // AVATAR (LEFT SIDE)
-  // =========================
-  const avatar = await loadImage(user.avatar);
+  // ===== AVATAR =====
+  try {
+    const avatar = await loadImage(user.avatar);
+    ctx.drawImage(avatar, 80, 145, 250, 300);
+  } catch {}
 
-  const avatarX = 120;
-  const avatarY = 170;
-  const avatarSize = 240;
+  const licenseNo = String(user.points).padStart(10, "0");
+  const rank = getRank(user.points);
 
-  // Border around avatar
-  ctx.strokeStyle = "#6f7f90";
-  ctx.lineWidth = 6;
-  ctx.strokeRect(
-    avatarX - 5,
-    avatarY - 5,
-    avatarSize + 10,
-    avatarSize + 10
-  );
-
-  ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
-
-  // =========================
-  // TEXT STYLE
-  // =========================
   ctx.fillStyle = "#111";
-  ctx.textBaseline = "top";
-
-  // ===== License =====
-  ctx.font = "bold 52px Arial";
-  ctx.fillText("License No.", 520, 160);
-
-  ctx.font = "bold 56px Arial";
-  ctx.fillText(user.license, 520, 210);
-
-  // ===== Rank =====
-  ctx.font = "bold 60px Arial";
-  ctx.fillText(`Rank : [${user.rank}]`, 860, 185);
-
-  // ===== Name =====
-  ctx.font = "bold 60px Arial";
-  ctx.fillText(`Name : [${user.name}]`, 520, 300);
-
-  // ===== Category Title =====
-  ctx.font = "bold 56px Arial";
-  ctx.fillText("Category", 520, 390);
-
-  // =========================
-  // CATEGORY BOXES (2x2)
-  // =========================
-  const startX = 520;
-  const startY = 445;
-  const boxW = 240;
-  const boxH = 55;
-  const gapX = 25;
-  const gapY = 18;
-
-  ctx.strokeStyle = "#9aa8b5";
+  ctx.strokeStyle = "#9aa3af";
   ctx.lineWidth = 3;
 
-  for (let row = 0; row < 2; row++) {
+  // ===== LICENSE =====
+  ctx.font = "bold 48px RobotoBold";
+  ctx.fillText("License No.", 460, 170);
+
+  ctx.strokeRect(460, 185, 330, 58);
+
+  ctx.font = "bold 52px RobotoBold";
+  ctx.fillText(licenseNo, 475, 230);
+
+  // ===== RANK (NO BOX) =====
+  ctx.font = "bold 56px RobotoBold";
+  ctx.fillText(`Rank : [${rank}]`, 830, 225);
+
+  // ===== NAME (NO BOX) =====
+  ctx.font = "bold 56px RobotoBold";
+  ctx.fillText(`Name : [${user.thmUsername}]`, 460, 330);
+
+  // ===== CATEGORY =====
+  ctx.font = "bold 52px RobotoBold";
+  ctx.fillText("Category", 460, 400);
+
+  // ===== CATEGORY GRID (2 COLUMNS ONLY) =====
+  const startX = 460;
+  const startY = 420;
+  const boxW = 250;
+  const boxH = 45;
+  const gap = 25;
+
+  for (let row = 0; row < 3; row++) {
     for (let col = 0; col < 2; col++) {
       ctx.strokeRect(
-        startX + col * (boxW + gapX),
-        startY + row * (boxH + gapY),
+        startX + col * (boxW + gap),
+        startY + row * (boxH + 12),
         boxW,
         boxH
       );
     }
   }
 
-  // Category text inside first box
-  ctx.font = "bold 44px Arial";
-  ctx.fillStyle = "#0d1a2c";
-  ctx.fillText(user.category || "Hacker", startX + 35, startY + 8);
+  // HACKER TEXT (FIRST BOX)
+  ctx.font = "bold 40px RobotoBold";
+  const txt = "Hacker";
 
-  // =========================
-  // RETURN IMAGE BUFFER
-  // =========================
+  const tw = ctx.measureText(txt).width;
+  const tx = startX + (boxW - tw) / 2;
+  const ty = startY + boxH / 2 + 14;
+
+  ctx.fillText(txt, tx, ty);
+
   return canvas.toBuffer("image/png");
-};
+}
+
+module.exports = { generateCard };

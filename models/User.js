@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-  discordId: { type: String, required: true, unique: true },
-  thmUsername: { type: String, required: true },
-  points: { type: Number, default: 0 },
-  avatar: { type: String, default: "" },
-  lastFetched: { type: Date, default: null }
+  discordId: { type: String, unique: true },
+  thmUsername: String,
+  points: Number,
+  avatar: String,
+  lastFetched: Date
 });
 
 module.exports = mongoose.model("User", userSchema);

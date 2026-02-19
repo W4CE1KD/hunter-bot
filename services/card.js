@@ -1,17 +1,3 @@
-// card.js (SOLO-LEVELING INSPIRED THEME)
-// Dark + blue/purple aura + “rune” glyphs + SYSTEM vibe
-// No template image needed.
-//
-// ✅ Anime theme styling (Solo Leveling-ish)
-// ✅ Avatar glow frame
-// ✅ Big rank sigil + watermark
-// ✅ Clean info panels (labels bold, values normal)
-// ✅ Auto-fit long names
-//
-// Requires fonts:
-//   /fonts/Roboto-Bold.ttf
-//   /fonts/Roboto-Regular.ttf
-
 const { createCanvas, loadImage, registerFont } = require("canvas");
 const path = require("path");
 
@@ -22,9 +8,6 @@ registerFont(path.join(__dirname, "../fonts/Roboto-Regular.ttf"), {
   family: "Roboto",
 });
 
-// ─────────────────────────────────────────
-// RANKING
-// ─────────────────────────────────────────
 function getRank(points) {
   if (points >= 150000) return "S";
   if (points >= 100000) return "A";
@@ -35,7 +18,6 @@ function getRank(points) {
 }
 
 function getRankColor(rank) {
-  // Solo leveling vibe: blue → purple → crimson for S
   switch (rank) {
     case "S":
       return "#ff2a6d";
@@ -71,6 +53,10 @@ function getCategory(rank) {
 
 const DEFAULT_TEAM = "morvax60";
 const DEFAULT_CTFS = "10";
+
+// 🔥 Put your logo URL here (or set it from env if you want)
+const BG_LOGO_URL = process.env.BG_LOGO_URL || ""; // e.g. "https://....png"
+const BG_LOGO_OPACITY = 0.10; // ~10%
 
 // ─────────────────────────────────────────
 // HELPERS
@@ -145,7 +131,6 @@ function drawNoise(ctx, w, h, amount = 5200) {
 }
 
 function drawAura(ctx, w, h, accent) {
-  // soft aura blobs (blue/purple)
   ctx.save();
   ctx.globalAlpha = 0.28;
 
@@ -164,89 +149,37 @@ function drawAura(ctx, w, h, accent) {
   ctx.restore();
 }
 
-function drawRunes(ctx, w, h, accent) {
-  // random “rune” glyphs – gives Solo Leveling magic-circle vibe
-  const glyphs = ["ᚠ", "ᚢ", "ᚦ", "ᚨ", "ᚱ", "ᚲ", "ᚷ", "ᚹ", "ᚺ", "ᚾ", "ᛁ", "ᛃ", "ᛇ", "ᛈ", "ᛉ", "ᛋ", "ᛏ", "ᛒ", "ᛖ", "ᛗ", "ᛚ", "ᛜ"];
-  ctx.save();
-  ctx.globalAlpha = 0.10;
-  ctx.fillStyle = accent;
-  ctx.font = "18px Roboto";
+async function drawCenteredBgLogo(ctx, canvasW, canvasH, urlOrPath, opacity = 0.1) {
+  if (!urlOrPath) return;
 
-  // place runes mostly on right area
-  for (let i = 0; i < 120; i++) {
-    const x = 420 + Math.random() * (w - 460);
-    const y = 80 + Math.random() * (h - 140);
-    const g = glyphs[(Math.random() * glyphs.length) | 0];
-    ctx.fillText(g, x, y);
+  try {
+    const img = await loadImage(urlOrPath);
+
+    // Scale logo to ~45% of card width (adjust if you want)
+    const targetW = canvasW * 0.45;
+    const scale = targetW / img.width;
+    const w = img.width * scale;
+    const h = img.height * scale;
+
+    const x = (canvasW - w) / 2;
+    const y = (canvasH - h) / 2;
+
+    ctx.save();
+    ctx.globalAlpha = opacity;
+
+    // very soft glow behind logo
+    ctx.shadowColor = "rgba(0,0,0,0.6)";
+    ctx.shadowBlur = 30;
+    ctx.drawImage(img, x, y, w, h);
+
+    ctx.restore();
+  } catch {
+    // ignore logo load errors
   }
-
-  // big faint rune ring
-  ctx.globalAlpha = 0.08;
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 2;
-
-  const cx = w - 210;
-  const cy = 250;
-  ctx.beginPath();
-  ctx.arc(cx, cy, 150, 0, Math.PI * 2);
-  ctx.stroke();
-
-  ctx.globalAlpha = 0.06;
-  ctx.beginPath();
-  ctx.arc(cx, cy, 110, 0, Math.PI * 2);
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-function drawSigil(ctx, x, y, size, accent) {
-  // simple “magic sigil” (geometric) behind rank
-  const cx = x + size / 2;
-  const cy = y + size / 2;
-
-  ctx.save();
-  ctx.globalAlpha = 0.20;
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 2;
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, size * 0.45, 0, Math.PI * 2);
-  ctx.stroke();
-
-  ctx.globalAlpha = 0.12;
-  ctx.beginPath();
-  ctx.arc(cx, cy, size * 0.33, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // triangle
-  ctx.globalAlpha = 0.18;
-  ctx.beginPath();
-  ctx.moveTo(cx, cy - size * 0.34);
-  ctx.lineTo(cx + size * 0.30, cy + size * 0.22);
-  ctx.lineTo(cx - size * 0.30, cy + size * 0.22);
-  ctx.closePath();
-  ctx.stroke();
-
-  // small nodes
-  ctx.globalAlpha = 0.22;
-  ctx.fillStyle = accent;
-  for (let i = 0; i < 10; i++) {
-    const ang = (Math.PI * 2 * i) / 10;
-    const px = cx + Math.cos(ang) * size * 0.45;
-    const py = cy + Math.sin(ang) * size * 0.45;
-    ctx.beginPath();
-    ctx.arc(px, py, 2.2, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.restore();
 }
 
 function fieldTile(ctx, label, value, x, y, w, h, accent) {
-  // shadow glow
-  glowR(ctx, x, y, w, h, 18, accent, 18, 0.22);
-
-  // glass/dark panel
+  glowR(ctx, x, y, w, h, 18, accent, 18, 0.18);
   fillR(ctx, x, y, w, h, 18, "rgba(0,0,0,0.35)");
   strokeR(ctx, x, y, w, h, 18, "rgba(255,255,255,0.10)", 1);
 
@@ -283,9 +216,7 @@ async function generateCard(user) {
   const accent = getRankColor(rank);
   const category = getCategory(rank);
 
-  // ─────────────────────────────────────────
-  // BACKGROUND (dark + aura)
-  // ─────────────────────────────────────────
+  // Background (dark + aura)
   const bg = ctx.createLinearGradient(0, 0, width, height);
   bg.addColorStop(0, "#05060D");
   bg.addColorStop(0.55, "#070A16");
@@ -295,14 +226,14 @@ async function generateCard(user) {
 
   drawAura(ctx, width, height, accent);
 
-  // subtle diagonal slashes
+  // subtle diagonal slashes (kept but lighter)
   ctx.save();
-  ctx.globalAlpha = 0.10;
+  ctx.globalAlpha = 0.06;
   ctx.fillStyle = "rgba(255,255,255,0.15)";
-  for (let i = -300; i < width + 300; i += 120) {
+  for (let i = -300; i < width + 300; i += 140) {
     ctx.beginPath();
-    ctx.moveTo(i, 40);
-    ctx.lineTo(i + 60, 40);
+    ctx.moveTo(i, 30);
+    ctx.lineTo(i + 60, 30);
     ctx.lineTo(i + 260, height);
     ctx.lineTo(i + 200, height);
     ctx.closePath();
@@ -310,19 +241,17 @@ async function generateCard(user) {
   }
   ctx.restore();
 
-  drawRunes(ctx, width, height, accent);
+  // ✅ Center background logo (watermark)
+  await drawCenteredBgLogo(ctx, width, height, BG_LOGO_URL, BG_LOGO_OPACITY);
+
   drawNoise(ctx, width, height, 5200);
 
-  // ─────────────────────────────────────────
-  // OUTER FRAME
-  // ─────────────────────────────────────────
+  // Outer frame
   glowR(ctx, 22, 22, width - 44, height - 44, 28, accent, 34, 0.28);
   fillR(ctx, 22, 22, width - 44, height - 44, 28, "rgba(255,255,255,0.05)");
   strokeR(ctx, 22, 22, width - 44, height - 44, 28, "rgba(255,255,255,0.10)", 1);
 
-  // ─────────────────────────────────────────
-  // HEADER (SYSTEM style)
-  // ─────────────────────────────────────────
+  // Header bar
   const headerX = 46;
   const headerY = 46;
   const headerW = width - 92;
@@ -331,24 +260,18 @@ async function generateCard(user) {
   fillR(ctx, headerX, headerY, headerW, headerH, 22, "rgba(0,0,0,0.40)");
   strokeR(ctx, headerX, headerY, headerW, headerH, 22, "rgba(255,255,255,0.10)", 1);
 
-  // left title
-  ctx.font = "bold 28px RobotoBold";
+  // ✅ Heading ONLY
+  ctx.font = "bold 30px RobotoBold";
   ctx.fillStyle = "rgba(255,255,255,0.92)";
-  ctx.fillText("SYSTEM // HUNTER STATUS", headerX + 22, headerY + 40);
+  ctx.fillText("HUNTER CARD", headerX + 22, headerY + 52);
 
-  ctx.font = "14px Roboto";
-  ctx.fillStyle = "rgba(255,255,255,0.55)";
-  ctx.fillText("Awakening Registry • Shadow Archive • Secure Record", headerX + 22, headerY + 66);
-
-  // ─────────────────────────────────────────
-  // License (top center-left)
-  // ─────────────────────────────────────────
+  // License
   const licBoxW = 320;
   const licBoxH = 54;
-  const licBoxX = headerX + 520;
+  const licBoxX = headerX + headerW - (licBoxW + 190);
   const licBoxY = headerY + 16;
 
-  glowR(ctx, licBoxX, licBoxY, licBoxW, licBoxH, 16, accent, 22, 0.25);
+  glowR(ctx, licBoxX, licBoxY, licBoxW, licBoxH, 16, accent, 22, 0.22);
   fillR(ctx, licBoxX, licBoxY, licBoxW, licBoxH, 16, "rgba(255,255,255,0.06)");
   strokeR(ctx, licBoxX, licBoxY, licBoxW, licBoxH, 16, "rgba(255,255,255,0.12)", 1);
 
@@ -356,25 +279,21 @@ async function generateCard(user) {
 
   ctx.font = "bold 12px RobotoBold";
   ctx.fillStyle = "rgba(255,255,255,0.60)";
-  ctx.fillText("LICENSE ID", licBoxX + 26, licBoxY + 20);
+  ctx.fillText("LICENSE", licBoxX + 26, licBoxY + 20);
 
   ctx.font = "20px Roboto";
   ctx.fillStyle = "rgba(255,255,255,0.92)";
   ctx.fillText(licenseNo, licBoxX + 26, licBoxY + 44);
 
-  // ─────────────────────────────────────────
-  // Rank area (top right)
-  // ─────────────────────────────────────────
+  // Rank box
   const rankBoxW = 170;
   const rankBoxH = 54;
   const rankBoxX = headerX + headerW - rankBoxW - 18;
   const rankBoxY = headerY + 16;
 
-  glowR(ctx, rankBoxX, rankBoxY, rankBoxW, rankBoxH, 16, accent, 26, 0.35);
+  glowR(ctx, rankBoxX, rankBoxY, rankBoxW, rankBoxH, 16, accent, 26, 0.30);
   fillR(ctx, rankBoxX, rankBoxY, rankBoxW, rankBoxH, 16, "rgba(255,255,255,0.06)");
   strokeR(ctx, rankBoxX, rankBoxY, rankBoxW, rankBoxH, 16, "rgba(255,255,255,0.12)", 1);
-
-  drawSigil(ctx, rankBoxX - 90, rankBoxY - 46, 170, accent);
 
   ctx.font = "bold 12px RobotoBold";
   ctx.fillStyle = "rgba(255,255,255,0.60)";
@@ -382,19 +301,9 @@ async function generateCard(user) {
 
   ctx.font = "bold 26px RobotoBold";
   ctx.fillStyle = accent;
-  ctx.fillText(rank, rankBoxX + 110, rankBoxY + 44);
+  ctx.fillText(rank, rankBoxX + 112, rankBoxY + 44);
 
-  // huge watermark rank in background
-  ctx.save();
-  ctx.globalAlpha = 0.08;
-  ctx.font = "260px RobotoBold";
-  ctx.fillStyle = accent;
-  ctx.fillText(rank, width - 290, 330);
-  ctx.restore();
-
-  // ─────────────────────────────────────────
-  // BODY PANELS
-  // ─────────────────────────────────────────
+  // Body
   const bodyX = 46;
   const bodyY = 150;
   const bodyW = width - 92;
@@ -403,23 +312,22 @@ async function generateCard(user) {
   fillR(ctx, bodyX, bodyY, bodyW, bodyH, 26, "rgba(0,0,0,0.32)");
   strokeR(ctx, bodyX, bodyY, bodyW, bodyH, 26, "rgba(255,255,255,0.10)", 1);
 
-  // Avatar panel (left)
+  // Avatar panel
   const avPanelX = bodyX + 22;
   const avPanelY = bodyY + 22;
   const avPanelW = 360;
   const avPanelH = bodyH - 44;
 
-  glowR(ctx, avPanelX, avPanelY, avPanelW, avPanelH, 24, accent, 26, 0.26);
+  glowR(ctx, avPanelX, avPanelY, avPanelW, avPanelH, 24, accent, 26, 0.22);
   fillR(ctx, avPanelX, avPanelY, avPanelW, avPanelH, 24, "rgba(255,255,255,0.05)");
   strokeR(ctx, avPanelX, avPanelY, avPanelW, avPanelH, 24, "rgba(255,255,255,0.10)", 1);
 
-  // Avatar frame
   const avatarX = avPanelX + 18;
   const avatarY = avPanelY + 18;
   const avatarW = avPanelW - 36;
-  const avatarH = avatarW; // square
+  const avatarH = avatarW;
 
-  glowR(ctx, avatarX - 6, avatarY - 6, avatarW + 12, avatarH + 12, 22, accent, 30, 0.35);
+  glowR(ctx, avatarX - 6, avatarY - 6, avatarW + 12, avatarH + 12, 22, accent, 30, 0.32);
   strokeR(ctx, avatarX - 2, avatarY - 2, avatarW + 4, avatarH + 4, 20, accent, 3);
   fillR(ctx, avatarX, avatarY, avatarW, avatarH, 18, "rgba(0,0,0,0.35)");
 
@@ -432,17 +340,7 @@ async function generateCard(user) {
     ctx.restore();
   } catch {}
 
-  // little “SYSTEM” status under avatar
-  const statusY = avatarY + avatarH + 26;
-  ctx.font = "bold 14px RobotoBold";
-  ctx.fillStyle = "rgba(255,255,255,0.70)";
-  ctx.fillText("STATUS", avPanelX + 22, statusY);
-
-  ctx.font = "14px Roboto";
-  ctx.fillStyle = "rgba(255,255,255,0.55)";
-  ctx.fillText("Awakened • Verified • Shadow-linked", avPanelX + 22, statusY + 22);
-
-  // Info panel (right)
+  // Right info panel
   const infoX = avPanelX + avPanelW + 22;
   const infoY = avPanelY;
   const infoW = bodyX + bodyW - infoX - 22;
@@ -451,7 +349,6 @@ async function generateCard(user) {
   fillR(ctx, infoX, infoY, infoW, infoH, 24, "rgba(255,255,255,0.04)");
   strokeR(ctx, infoX, infoY, infoW, infoH, 24, "rgba(255,255,255,0.10)", 1);
 
-  // Fields
   const pad = 22;
   const tileW = infoW - pad * 2;
   const tileH = 90;
@@ -468,59 +365,7 @@ async function generateCard(user) {
   fieldTile(ctx, "Team", team, infoX + pad, infoY + 26 + (tileH + 16) * 2, halfW, tileH, accent);
   fieldTile(ctx, "CTF", ctf, infoX + pad + halfW + gap, infoY + 26 + (tileH + 16) * 2, halfW, tileH, accent);
 
-  // Points bar (nice flex)
-  const barX = infoX + pad;
-  const barY = infoY + infoH - 90;
-  const barW = tileW;
-  const barH = 56;
-
-  glowR(ctx, barX, barY, barW, barH, 18, accent, 20, 0.22);
-  fillR(ctx, barX, barY, barW, barH, 18, "rgba(0,0,0,0.35)");
-  strokeR(ctx, barX, barY, barW, barH, 18, "rgba(255,255,255,0.10)", 1);
-
-  ctx.font = "bold 14px RobotoBold";
-  ctx.fillStyle = "rgba(255,255,255,0.60)";
-  ctx.fillText("POWER", barX + 18, barY + 22);
-
-  ctx.font = "18px Roboto";
-  ctx.fillStyle = "rgba(255,255,255,0.92)";
-  ctx.fillText(String(points), barX + 18, barY + 46);
-
-  // progress to next rank (simple)
-  const nextThreshold =
-    rank === "E" ? 10000 :
-    rank === "D" ? 20000 :
-    rank === "C" ? 50000 :
-    rank === "B" ? 100000 :
-    rank === "A" ? 150000 :
-    150000;
-
-  const prevThreshold =
-    rank === "E" ? 0 :
-    rank === "D" ? 10000 :
-    rank === "C" ? 20000 :
-    rank === "B" ? 50000 :
-    rank === "A" ? 100000 :
-    150000;
-
-  const p = Math.max(0, Math.min(1, (points - prevThreshold) / Math.max(1, (nextThreshold - prevThreshold))));
-  const progX = barX + 140;
-  const progY = barY + 28;
-  const progW = barW - 160;
-  const progH = 10;
-
-  fillR(ctx, progX, progY, progW, progH, 10, "rgba(255,255,255,0.10)");
-  fillR(ctx, progX, progY, Math.max(8, progW * p), progH, 10, accent);
-
-  ctx.font = "12px Roboto";
-  ctx.fillStyle = "rgba(255,255,255,0.55)";
-  ctx.fillText(`NEXT: ${nextThreshold}`, progX, barY + 50);
-
-  // Footer
-  ctx.font = "13px Roboto";
-  ctx.fillStyle = "rgba(255,255,255,0.45)";
-  ctx.fillText("SYSTEM MESSAGE: Identity confirmed. Access granted.", 58, height - 52);
-
+  // Footer removed (extra system lines removed)
   return canvas.toBuffer("image/png");
 }
 

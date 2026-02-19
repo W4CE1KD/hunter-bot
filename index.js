@@ -3,8 +3,6 @@ require("dotenv").config();
 const { Client, GatewayIntentBits, AttachmentBuilder } = require("discord.js");
 const mongoose = require("mongoose");
 const cron = require("node-cron");
-
-// 🔥 FIXED IMPORT (IMPORTANT)
 const PQueue = require("p-queue").default;
 
 const User = require("./models/User");
@@ -12,18 +10,16 @@ const { getTHMProfile } = require("./services/scraper");
 const { getRank } = require("./services/rank");
 const { generateCard } = require("./services/card");
 
-// queue (prevents spam crash)
 const queue = new PQueue({ concurrency: 2 });
 
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.error(err));
+  .then(() => console.log("MongoDB connected"));
 
 const client = new Client({
   intents: [
-    GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.Guilds
   ]
 });
 
@@ -36,16 +32,14 @@ client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
   if (message.channel.id !== process.env.ALLOWED_CHANNEL) return;
 
-  const args = message.content.trim().split(" ");
+  const args = message.content.split(" ");
   const command = args[0];
 
-  // ======================
-  // LINK THM ACCOUNT
-  // ======================
+  // LINK ACCOUNT
   if (command === "!setthm") {
 
     const username = args[1];
-    if (!username) return message.reply("Provide THM username.");
+    if (!username) return message.reply("Provide username.");
 
     const profile = await getTHMProfile(username);
     if (!profile) return message.reply("THM profile not found.");
@@ -65,44 +59,28 @@ client.on("messageCreate", async (message) => {
     return message.reply("THM account linked successfully.");
   }
 
-  // ======================
-  // RANK COMMAND
-  // ======================
+  // RANK
   if (command === "!rank") {
 
-    const user = await User.findOne({
-      discordId: message.author.id
-    });
-
-    if (!user) {
-      return message.reply("Link your THM first using !setthm");
-    }
+    const user = await User.findOne({ discordId: message.author.id });
+    if (!user) return message.reply("Use !setthm first.");
 
     queue.add(async () => {
-      try {
-        const rank = getRank(user.points);
-        const buffer = await generateCard(user, rank);
 
-        const attachment = new AttachmentBuilder(buffer, {
-          name: "hunter-license.png"
-        });
+      const rank = getRank(user.points);
+      const buffer = await generateCard(user, rank);
 
-        await message.reply({ files: [attachment] });
+      const attachment = new AttachmentBuilder(buffer, {
+        name: "hunter-license.png"
+      });
 
-      } catch (err) {
-        console.error(err);
-        message.reply("Error generating rank card.");
-      }
+      message.reply({ files: [attachment] });
     });
   }
 });
 
-// ======================
-// BACKGROUND SYNC
-// ======================
+// AUTO UPDATE
 cron.schedule("0 */6 * * *", async () => {
-
-  console.log("Running background sync...");
 
   const users = await User.find();
 
@@ -117,8 +95,7 @@ cron.schedule("0 */6 * * *", async () => {
       await user.save();
     }
 
-    // small delay (anti-rate limit)
-    await new Promise(res => setTimeout(res, 1500));
+    await new Promise(r => setTimeout(r, 1500));
   }
 });
 

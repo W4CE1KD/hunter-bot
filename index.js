@@ -17,9 +17,9 @@ mongoose.connect(process.env.MONGO_URI)
 
 const client = new Client({
   intents: [
+    GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.Guilds
+    GatewayIntentBits.MessageContent
   ]
 });
 
@@ -39,7 +39,7 @@ client.on("messageCreate", async (message) => {
   if (command === "!setthm") {
 
     const username = args[1];
-    if (!username) return message.reply("Provide username.");
+    if (!username) return message.reply("Provide THM username.");
 
     const profile = await getTHMProfile(username);
     if (!profile) return message.reply("THM profile not found.");
@@ -59,7 +59,7 @@ client.on("messageCreate", async (message) => {
     return message.reply("THM account linked successfully.");
   }
 
-  // RANK COMMAND
+  // RANK
   if (command === "!rank") {
 
     const user = await User.findOne({
@@ -82,7 +82,7 @@ client.on("messageCreate", async (message) => {
   }
 });
 
-// AUTO UPDATE EVERY 6 HOURS
+// AUTO UPDATE
 cron.schedule("0 */6 * * *", async () => {
 
   const users = await User.find();

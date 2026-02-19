@@ -143,19 +143,19 @@ async function generateCard(user) {
   ctx.fillStyle = color;
   ctx.fillText(rankLabel, badgeX + 22, badgeY + 49);
 
+  // ── LICENSE NO — top row left, same height as rank badge ────────────────
+  inlineField("License No. : ", licenseNo, contentX, badgeY + 49, 48);
+
   // ── CONTENT FIELDS ────────────────────────────────────────────────────────
   divider(200);
-  inlineField("License No. : ", licenseNo, contentX, 260, 48);
+  inlineField("Name : ", `[${user.thmUsername}]`, contentX, 270, 56);
 
-  divider(288);
-  inlineField("Name : ", `[${user.thmUsername}]`, contentX, 352, 56);
+  divider(298);
+  inlineField("Category : ", category, contentX, 358, 48);
 
-  divider(380);
-  inlineField("Category : ", category, contentX, 440, 48);
-
-  divider(468);
-  inlineField("teamname : ", DEFAULT_TEAM, contentX, 530, 44);
-  inlineField("ctfs : ", DEFAULT_CTFS, contentX + 480, 530, 44);
+  divider(386);
+  inlineField("teamname : ", DEFAULT_TEAM, contentX, 448, 44);
+  inlineField("ctfs : ", DEFAULT_CTFS, contentX + 480, 448, 44);
 
   return canvas.toBuffer("image/png");
 }

@@ -67,7 +67,7 @@ async function generateCard(user) {
   const boxH = 45;
   const gap = 25;
 
-  for (let row = 0; row < 3; row++) {
+  for (let row = 0; row < 2; row++) {
     for (let col = 0; col < 2; col++) {
       ctx.strokeRect(
         startX + col * (boxW + gap),

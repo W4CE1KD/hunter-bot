@@ -39,32 +39,43 @@ async function generateCard(user) {
   ctx.strokeStyle = "#9aa3af";
   ctx.lineWidth = 3;
 
-  // ===== HEADINGS =====
-  ctx.font = "bold 48px RobotoBold";
-  ctx.fillText("License No.", 460, 175);
-  ctx.fillText("Category:", 460, 355);
-
-  // ===== LICENSE BOX =====
-  ctx.strokeRect(460, 190, 340, 58);
-
   const licenseNo = String(user.points).padStart(10, "0");
   const rank = getRank(user.points);
 
-  // LICENSE VALUE
+  // ===== LICENSE =====
+  ctx.font = "bold 48px RobotoBold";
+  ctx.fillText("License No.", 460, 170);
+
+  ctx.strokeRect(460, 185, 330, 58);
+
   ctx.font = "bold 52px RobotoBold";
-  ctx.fillText(licenseNo, 475, 235);
+  ctx.fillText(licenseNo, 475, 230);
 
-  // ===== RANK INLINE =====
-  ctx.font = "bold 64px RobotoBold";
-  ctx.fillText(`Rank : ${rank}`, 820, 235);
+  // ===== RANK (UP + BOXED) =====
+  ctx.font = "bold 48px RobotoBold";
+  ctx.fillText("Rank :", 820, 170);
 
-  // ===== NAME INLINE (NO BOX) =====
-  ctx.font = "bold 58px RobotoBold";
-  ctx.fillText(`Name : ${user.thmUsername}`, 460, 315);
+  ctx.strokeRect(950, 185, 120, 58);
 
-  // ===== CATEGORY GRID =====
+  ctx.font = "bold 60px RobotoBold";
+  ctx.fillText(rank, 995, 230);
+
+  // ===== NAME (BOXED) =====
+  ctx.font = "bold 48px RobotoBold";
+  ctx.fillText("Name :", 460, 285);
+
+  ctx.strokeRect(460, 300, 610, 58);
+
+  ctx.font = "bold 56px RobotoBold";
+  ctx.fillText(user.thmUsername, 480, 345);
+
+  // ===== CATEGORY =====
+  ctx.font = "bold 48px RobotoBold";
+  ctx.fillText("Category", 460, 420);
+
+  // CATEGORY GRID ONLY
   const startX = 460;
-  const startY = 385;
+  const startY = 440;
   const boxW = 220;
   const boxH = 45;
   const gap = 20;
@@ -80,7 +91,7 @@ async function generateCard(user) {
     }
   }
 
-  // ===== HACKER TEXT CENTER =====
+  // HACKER FIRST BOX CENTER
   ctx.font = "bold 40px RobotoBold";
   const text = "Hacker";
 

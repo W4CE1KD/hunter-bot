@@ -1,13 +1,4 @@
-const {
-  createCanvas,
-  loadImage,
-  registerFont
-} = require("canvas");
-
-// 🔥 LOCAL FONT (ALWAYS WORKS)
-registerFont("./fonts/Roboto-Bold.ttf", {
-  family: "Roboto"
-});
+const { createCanvas, loadImage } = require("canvas");
 
 async function generateCard(user, rank) {
 
@@ -20,7 +11,7 @@ async function generateCard(user, rank) {
 
   // title
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 40px Roboto";
+  ctx.font = "bold 40px sans-serif";
   ctx.fillText("Hunter's License", 40, 60);
 
   // avatar
@@ -33,19 +24,19 @@ async function generateCard(user, rank) {
 
   // rank letter
   ctx.fillStyle = rank.color;
-  ctx.font = "bold 120px Roboto";
+  ctx.font = "bold 120px sans-serif";
   ctx.fillText(rank.letter, 820, 200);
 
   // username
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 40px Roboto";
+  ctx.font = "bold 40px sans-serif";
   ctx.fillText(user.thmUsername, 350, 200);
 
   // points
-  ctx.font = "30px Roboto";
+  ctx.font = "30px sans-serif";
   ctx.fillText(`Points: ${user.points}`, 350, 250);
 
-  // rank title
+  // title
   ctx.fillText(rank.title, 350, 300);
 
   return canvas.toBuffer();

@@ -46,6 +46,16 @@ async function generateCard(user) {
   const rank      = getRank(user.points);
   const color     = getRankColor(rank);
 
+  // helper: draw "Label : " in black + value in rank color inline
+  function inlineField(label, value, x, y, fontSize = 52) {
+    ctx.font      = `bold ${fontSize}px RobotoBold`;
+    ctx.fillStyle = "#111";
+    ctx.fillText(label, x, y);
+    const lw = ctx.measureText(label).width;
+    ctx.fillStyle = color;
+    ctx.fillText(value, x + lw, y);
+  }
+
   // ── LICENSE NO ───────────────────────────────────────────────────────────
   ctx.fillStyle = "#111";
   ctx.font      = "bold 48px RobotoBold";
@@ -59,60 +69,20 @@ async function generateCard(user) {
   ctx.font      = "bold 52px RobotoBold";
   ctx.fillText(licenseNo, 475, 230);
 
-  // ── RANK (right of license box, same row) ────────────────────────────────
-  ctx.fillStyle = "#111";
-  ctx.font      = "bold 48px RobotoBold";
-  ctx.fillText("Rank", 830, 170);
-
-  ctx.fillStyle = color;
-  ctx.font      = "bold 56px RobotoBold";
-  ctx.fillText(`[ ${rank} ]`, 830, 232);
+  // ── RANK — same inline style as Name ─────────────────────────────────────
+  inlineField("Rank : ", `[ ${rank} ]`, 830, 210, 52);
 
   // ── NAME ─────────────────────────────────────────────────────────────────
-  ctx.fillStyle = "#111";
-  ctx.font      = "bold 56px RobotoBold";
-  ctx.fillText("Name : ", 460, 330);
+  inlineField("Name : ", `[${user.thmUsername}]`, 460, 330, 56);
 
-  const prefixW = ctx.measureText("Name : ").width;
-  ctx.fillStyle = color;
-  ctx.fillText(`[${user.thmUsername}]`, 460 + prefixW, 330);
+  // ── CATEGORY ─────────────────────────────────────────────────────────────
+  inlineField("Category : ", user.category || "Hacker", 460, 400, 48);
 
-  // ── CATEGORY (label + value, no boxes, same style as name) ───────────────
-  ctx.fillStyle = "#111";
-  ctx.font      = "bold 48px RobotoBold";
-  ctx.fillText("Category : ", 460, 400);
+  // ── TEAMNAME ─────────────────────────────────────────────────────────────
+  inlineField("teamname : ", user.teamName || "—", 460, 470, 44);
 
-  const catPrefixW = ctx.measureText("Category : ").width;
-  ctx.fillStyle = color;
-  ctx.font      = "bold 48px RobotoBold";
-  ctx.fillText(user.category || "Hacker", 460 + catPrefixW, 400);
-
-  // ── TEAM NAME  |  CTFs ───────────────────────────────────────────────────
-  // Left column: teamname
-  const leftX  = 460;
-  const rightX = 800;  // right column start
-  const labelY = 470;  // label row
-  const valueY = 525;  // value row
-
-  // teamname label
-  ctx.fillStyle = "#111";
-  ctx.font      = "bold 40px RobotoBold";
-  ctx.fillText("teamname :", leftX, labelY);
-
-  // teamname value in rank color
-  ctx.fillStyle = color;
-  ctx.font      = "bold 44px RobotoBold";
-  ctx.fillText(user.teamName || "—", leftX, valueY);
-
-  // ctfs label
-  ctx.fillStyle = "#111";
-  ctx.font      = "bold 40px RobotoBold";
-  ctx.fillText("ctfs :", rightX, labelY);
-
-  // ctfs value in rank color
-  ctx.fillStyle = color;
-  ctx.font      = "bold 44px RobotoBold";
-  ctx.fillText(String(user.ctfs ?? "0"), rightX, valueY);
+  // ── CTFs — same inline style as Name ─────────────────────────────────────
+  inlineField("ctfs : ", String(user.ctfs ?? "0"), 460, 530, 44);
 
   return canvas.toBuffer("image/png");
 }

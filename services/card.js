@@ -1,69 +1,83 @@
-// services/card.js
 const { createCanvas, loadImage, registerFont } = require("canvas");
 const path = require("path");
+const fs = require("fs");
 
-// ===== FONT =====
-registerFont(path.join(__dirname, "../fonts/Roboto-Bold.ttf"), {
-  family: "RobotoBold",
-});
+// ===== REGISTER FONT =====
+registerFont(
+  path.join(__dirname, "../fonts/Roboto-Bold.ttf"),
+  { family: "Roboto" }
+);
 
 // ===== RANK LOGIC =====
 function getRank(points) {
-  if (points >= 120000) return "S";
-  if (points >= 90000) return "A";
-  if (points >= 60000) return "B";
-  if (points >= 30000) return "C";
+  if (points >= 150000) return "S";
+  if (points >= 100000) return "A";
+  if (points >= 50000) return "B";
+  if (points >= 20000) return "C";
   return "D";
 }
 
+// ===== MAIN CARD FUNCTION =====
 async function generateCard(user) {
-  // TEMPLATE SIZE (IMPORTANT)
-  const width = 1536;
-  const height = 864;
+  const width = 1600;
+  const height = 900;
 
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
   // ===== LOAD TEMPLATE =====
   const template = await loadImage(
-    path.join(__dirname, "../assets/license-template.png")
+    path.join(__dirname, "../assets/license-template-Photoroom.png")
   );
+
   ctx.drawImage(template, 0, 0, width, height);
 
-  // ===== AVATAR =====
-  try {
-    const avatar = await loadImage(user.avatar);
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#111";
 
-    // exact avatar box from template
-    ctx.drawImage(avatar, 120, 200, 230, 300);
-  } catch (e) {
-    console.log("Avatar failed to load");
+  // ===== AVATAR =====
+  let avatarPath = path.join(__dirname, "../assets/default-avatar.png");
+
+  if (user.avatar && fs.existsSync(user.avatar)) {
+    avatarPath = user.avatar;
   }
 
-  // ===== TEXT STYLE =====
-  ctx.fillStyle = "#111";
-  ctx.font = "bold 48px RobotoBold";
+  const avatar = await loadImage(avatarPath);
 
-  // LICENSE NUMBER
-  ctx.fillText(
-    String(user.points).padStart(10, "0"),
-    430,
-    355
+  ctx.drawImage(
+    avatar,
+    125, // X
+    175, // Y
+    220, // W
+    280  // H
   );
 
-  // RANK LETTER
-  ctx.font = "bold 72px RobotoBold";
-  ctx.fillText(getRank(user.points), 650, 360);
+  // ===== DATA =====
+  const licenseNo = String(user.points || 0).padStart(11, "0");
+  const rank = getRank(user.points || 0);
+  const username = user.thmUsername || "Unknown";
 
-  // USERNAME
-  ctx.font = "bold 56px RobotoBold";
-  ctx.fillText(user.thmUsername, 430, 470);
+  // ===== LICENSE NUMBER =====
+  ctx.font = "bold 42px Roboto";
+  ctx.fillText(licenseNo, 430, 255);
 
-  // CATEGORY (bottom right box)
-  ctx.font = "bold 48px RobotoBold";
-  ctx.fillText("Hacker", 1040, 620);
+  // ===== RANK =====
+  ctx.font = "bold 72px Roboto";
+  ctx.fillText(rank, 690, 255);
 
-  return canvas.toBuffer();
+  // ===== USERNAME =====
+  ctx.font = "bold 58px Roboto";
+  ctx.fillText(username, 430, 330);
+
+  // ===== CATEGORY =====
+  ctx.font = "bold 48px Roboto";
+  ctx.fillText("Hacker", 700, 470);
+
+  // ===== RETURN BUFFER =====
+  return canvas.toBuffer("image/png");
 }
 
-module.exports = { generateCard };
+module.exports = {
+  generateCard,
+};

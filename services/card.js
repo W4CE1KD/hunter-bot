@@ -15,7 +15,7 @@ function getRank(points) {
   return "D";
 }
 
-// ===== MAIN CARD =====
+// ===== CARD GENERATOR =====
 async function generateCard(user) {
   const width = 1280;
   const height = 720;
@@ -33,40 +33,39 @@ async function generateCard(user) {
   try {
     const avatar = await loadImage(user.avatar);
     ctx.drawImage(avatar, 80, 145, 260, 300);
-  } catch {
-    console.log("Avatar load failed");
-  }
+  } catch {}
 
   ctx.fillStyle = "#111";
 
   // ===== HEADINGS =====
   ctx.font = "bold 42px RobotoBold";
   ctx.fillText("License No.", 470, 180);
-  ctx.fillText("Rank:", 860, 180);
-  ctx.fillText("Name:", 470, 280);
   ctx.fillText("Category:", 470, 380);
 
-  // ===== BOXES (LICENSE + NAME) =====
+  // ===== BOXES =====
   ctx.strokeStyle = "#9aa3af";
   ctx.lineWidth = 3;
 
-  // License box
+  // license box
   ctx.strokeRect(470, 195, 330, 55);
 
-  // Name box
+  // name box
   ctx.strokeRect(470, 295, 700, 55);
 
   // ===== VALUES =====
   const licenseNo = String(user.points).padStart(10, "0");
+  const rank = getRank(user.points);
 
   ctx.font = "bold 52px RobotoBold";
   ctx.fillText(licenseNo, 480, 238);
 
-  ctx.font = "bold 72px RobotoBold";
-  ctx.fillText(getRank(user.points), 860, 240);
-
+  // ===== NAME INLINE (FIXED) =====
   ctx.font = "bold 58px RobotoBold";
-  ctx.fillText(user.thmUsername, 480, 338);
+  ctx.fillText(`Name : ${user.thmUsername}`, 480, 338);
+
+  // ===== RANK INLINE =====
+  ctx.font = "bold 64px RobotoBold";
+  ctx.fillText(`Rank : ${rank}`, 860, 235);
 
   // ===== CATEGORY GRID =====
   const startX = 470;
@@ -86,7 +85,7 @@ async function generateCard(user) {
     }
   }
 
-  // ===== HACKER TEXT (FIRST BOX CENTERED) =====
+  // ===== HACKER TEXT CENTER =====
   ctx.font = "bold 40px RobotoBold";
   const text = "Hacker";
 

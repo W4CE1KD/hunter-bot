@@ -1,14 +1,17 @@
-// card.js (NEW UI - Cyber / Premium)
-// No template image needed.
+// card.js (ANIME STYLE ID CARD)
+// - No template image required
+// - Bright anime/guild-card vibe (diagonal shapes + stamp + sparkles)
+// - Avatar frame + rank badge + license + clean fields
+// - Labels bold, values normal
+// - Auto-fit long names
+//
+// Needs fonts:
+//   /fonts/Roboto-Bold.ttf
+//   /fonts/Roboto-Regular.ttf
 
 const { createCanvas, loadImage, registerFont } = require("canvas");
 const path = require("path");
 
-// ─────────────────────────────────────────
-// FONTS (make sure both exist)
-//   /fonts/Roboto-Bold.ttf
-//   /fonts/Roboto-Regular.ttf
-// ─────────────────────────────────────────
 registerFont(path.join(__dirname, "../fonts/Roboto-Bold.ttf"), {
   family: "RobotoBold",
 });
@@ -33,15 +36,15 @@ function getRankColor(rank) {
     case "S":
       return "#ff2d55"; // red/pink
     case "A":
-      return "#a855f7"; // purple
+      return "#7c3aed"; // purple
     case "B":
-      return "#38bdf8"; // sky
+      return "#2563eb"; // blue
     case "C":
-      return "#22c55e"; // green
+      return "#16a34a"; // green
     case "D":
       return "#f59e0b"; // amber
     default:
-      return "#94a3b8"; // slate
+      return "#475569"; // slate
   }
 }
 
@@ -66,7 +69,7 @@ const DEFAULT_TEAM = "morvax60";
 const DEFAULT_CTFS = "10";
 
 // ─────────────────────────────────────────
-// SHAPES
+// HELPERS
 // ─────────────────────────────────────────
 function roundRect(ctx, x, y, w, h, r) {
   const rr = Math.min(r, w / 2, h / 2);
@@ -83,7 +86,7 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-function fillRoundRect(ctx, x, y, w, h, r, fillStyle) {
+function fillR(ctx, x, y, w, h, r, fillStyle) {
   ctx.save();
   roundRect(ctx, x, y, w, h, r);
   ctx.fillStyle = fillStyle;
@@ -91,7 +94,7 @@ function fillRoundRect(ctx, x, y, w, h, r, fillStyle) {
   ctx.restore();
 }
 
-function strokeRoundRect(ctx, x, y, w, h, r, strokeStyle, lineWidth = 1) {
+function strokeR(ctx, x, y, w, h, r, strokeStyle, lineWidth = 1) {
   ctx.save();
   roundRect(ctx, x, y, w, h, r);
   ctx.strokeStyle = strokeStyle;
@@ -100,7 +103,7 @@ function strokeRoundRect(ctx, x, y, w, h, r, strokeStyle, lineWidth = 1) {
   ctx.restore();
 }
 
-function glowRect(ctx, x, y, w, h, r, glowColor, blur = 26, alpha = 0.35) {
+function glowR(ctx, x, y, w, h, r, glowColor, blur = 26, alpha = 0.35) {
   ctx.save();
   ctx.globalAlpha = alpha;
   ctx.shadowColor = glowColor;
@@ -113,42 +116,6 @@ function glowRect(ctx, x, y, w, h, r, glowColor, blur = 26, alpha = 0.35) {
   ctx.restore();
 }
 
-function drawGrid(ctx, w, h) {
-  ctx.save();
-  ctx.globalAlpha = 0.08;
-  ctx.strokeStyle = "rgba(255,255,255,0.6)";
-  ctx.lineWidth = 1;
-
-  const step = 48;
-  for (let x = 0; x <= w; x += step) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, h);
-    ctx.stroke();
-  }
-  for (let y = 0; y <= h; y += step) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(w, y);
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function drawNoise(ctx, w, h) {
-  ctx.save();
-  ctx.globalAlpha = 0.05;
-  for (let i = 0; i < 5200; i++) {
-    const x = (Math.random() * w) | 0;
-    const y = (Math.random() * h) | 0;
-    const a = Math.random() * 0.9;
-    ctx.fillStyle = `rgba(0,0,0,${a})`;
-    ctx.fillRect(x, y, 1, 1);
-  }
-  ctx.restore();
-}
-
-// Auto-fit text into max width (returns chosen font size)
 function fitText(ctx, text, maxWidth, startSize, minSize, fontFamily, weight = "") {
   let size = startSize;
   while (size > minSize) {
@@ -159,12 +126,71 @@ function fitText(ctx, text, maxWidth, startSize, minSize, fontFamily, weight = "
   return minSize;
 }
 
+function drawSparkles(ctx, x, y, w, h, n = 18) {
+  ctx.save();
+  ctx.globalAlpha = 0.35;
+  for (let i = 0; i < n; i++) {
+    const sx = x + Math.random() * w;
+    const sy = y + Math.random() * h;
+    const r = 1 + Math.random() * 2.5;
+    ctx.beginPath();
+    ctx.arc(sx, sy, r, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawStamp(ctx, x, y, size, accent) {
+  // “CERTIFIED” circle stamp
+  const cx = x + size / 2;
+  const cy = y + size / 2;
+
+  ctx.save();
+  ctx.globalAlpha = 0.25;
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = accent;
+  ctx.beginPath();
+  ctx.arc(cx, cy, size * 0.46, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, size * 0.36, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.globalAlpha = 0.35;
+  ctx.font = "bold 16px RobotoBold";
+  ctx.fillStyle = accent;
+  ctx.fillText("CERTIFIED", cx - 46, cy + 6);
+
+  // little star
+  ctx.globalAlpha = 0.35;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - 38);
+  ctx.lineTo(cx + 6, cy - 24);
+  ctx.lineTo(cx + 22, cy - 24);
+  ctx.lineTo(cx + 10, cy - 14);
+  ctx.lineTo(cx + 14, cy + 2);
+  ctx.lineTo(cx, cy - 8);
+  ctx.lineTo(cx - 14, cy + 2);
+  ctx.lineTo(cx - 10, cy - 14);
+  ctx.lineTo(cx - 22, cy - 24);
+  ctx.lineTo(cx - 6, cy - 24);
+  ctx.closePath();
+  ctx.fillStyle = accent;
+  ctx.fill();
+
+  ctx.restore();
+}
+
 // ─────────────────────────────────────────
 // MAIN
 // ─────────────────────────────────────────
 async function generateCard(user) {
-  const width = 1200;
-  const height = 520;
+  // Anime card proportions (nice in Discord)
+  const width = 1180;
+  const height = 620;
 
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
@@ -176,195 +202,232 @@ async function generateCard(user) {
   const category = getCategory(rank);
 
   // ─────────────────────────────────────────
-  // Background (cyber)
+  // BACKGROUND (anime bright + soft)
   // ─────────────────────────────────────────
-  // base gradient
   const bg = ctx.createLinearGradient(0, 0, width, height);
-  bg.addColorStop(0, "#070A12");
-  bg.addColorStop(0.55, "#0B1020");
-  bg.addColorStop(1, "#070A12");
+  bg.addColorStop(0, "#f8fafc");  // very light
+  bg.addColorStop(0.55, "#eef2ff"); // soft lavender
+  bg.addColorStop(1, "#ecfeff");  // soft cyan
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, width, height);
 
-  // soft accent blobs
+  // big diagonal accent shapes
   ctx.save();
-  ctx.globalAlpha = 0.22;
-  const g1 = ctx.createRadialGradient(260, 140, 10, 260, 140, 320);
-  g1.addColorStop(0, accent);
-  g1.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = g1;
-  ctx.fillRect(0, 0, width, height);
+  ctx.globalAlpha = 0.12;
+  ctx.fillStyle = accent;
+  ctx.beginPath();
+  ctx.moveTo(-60, 120);
+  ctx.lineTo(520, -40);
+  ctx.lineTo(640, 40);
+  ctx.lineTo(60, 200);
+  ctx.closePath();
+  ctx.fill();
 
-  const g2 = ctx.createRadialGradient(980, 380, 10, 980, 380, 360);
-  g2.addColorStop(0, accent);
-  g2.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = g2;
-  ctx.fillRect(0, 0, width, height);
+  ctx.globalAlpha = 0.10;
+  ctx.fillStyle = "#111827";
+  ctx.beginPath();
+  ctx.moveTo(width - 80, height + 40);
+  ctx.lineTo(width + 60, height - 220);
+  ctx.lineTo(width - 200, height - 340);
+  ctx.lineTo(width - 340, height - 90);
+  ctx.closePath();
+  ctx.fill();
   ctx.restore();
 
-  drawGrid(ctx, width, height);
-  drawNoise(ctx, width, height);
+  // sparkles (top-right)
+  drawSparkles(ctx, width - 420, 40, 360, 180, 22);
 
-  // Outer card frame
-  glowRect(ctx, 20, 20, width - 40, height - 40, 28, accent, 30, 0.32);
-  fillRoundRect(ctx, 20, 20, width - 40, height - 40, 28, "rgba(255,255,255,0.06)");
-  strokeRoundRect(ctx, 20, 20, width - 40, height - 40, 28, "rgba(255,255,255,0.10)", 1);
+  // outer frame
+  glowR(ctx, 22, 22, width - 44, height - 44, 30, accent, 24, 0.20);
+  fillR(ctx, 22, 22, width - 44, height - 44, 30, "rgba(255,255,255,0.70)");
+  strokeR(ctx, 22, 22, width - 44, height - 44, 30, "rgba(17,24,39,0.14)", 2);
 
-  // Header bar
-  fillRoundRect(ctx, 40, 40, width - 80, 76, 22, "rgba(0,0,0,0.35)");
-  strokeRoundRect(ctx, 40, 40, width - 80, 76, 22, "rgba(255,255,255,0.10)", 1);
+  // header strip
+  fillR(ctx, 44, 44, width - 88, 82, 22, "rgba(17,24,39,0.06)");
+  strokeR(ctx, 44, 44, width - 88, 82, 22, "rgba(17,24,39,0.10)", 1);
 
-  // Title left
-  ctx.font = "bold 26px RobotoBold";
-  ctx.fillStyle = "rgba(255,255,255,0.92)";
-  ctx.fillText("M33NIX // RANK LICENSE", 64, 88);
+  // Title (anime/guild vibe)
+  ctx.font = "bold 30px RobotoBold";
+  ctx.fillStyle = "#0f172a";
+  ctx.fillText("HUNTER ACCESS CARD", 70, 92);
 
-  // Small subtitle
   ctx.font = "16px Roboto";
-  ctx.fillStyle = "rgba(255,255,255,0.55)";
-  ctx.fillText("Hunter Access Card • Secure ID", 64, 110);
+  ctx.fillStyle = "rgba(15,23,42,0.70)";
+  ctx.fillText("Hunter Association • Verified Identity", 72, 114);
 
-  // License (right side in header)
-  const licBoxX = width - 440;
-  const licBoxY = 56;
-  const licBoxW = 240;
-  const licBoxH = 44;
+  // ─────────────────────────────────────────
+  // Rank badge (right)
+  // ─────────────────────────────────────────
+  const rankBoxW = 180;
+  const rankBoxH = 66;
+  const rankBoxX = width - 70 - rankBoxW;
+  const rankBoxY = 56;
 
-  glowRect(ctx, licBoxX, licBoxY, licBoxW, licBoxH, 14, accent, 22, 0.28);
-  fillRoundRect(ctx, licBoxX, licBoxY, licBoxW, licBoxH, 14, "rgba(255,255,255,0.08)");
-  strokeRoundRect(ctx, licBoxX, licBoxY, licBoxW, licBoxH, 14, "rgba(255,255,255,0.12)", 1);
+  glowR(ctx, rankBoxX, rankBoxY, rankBoxW, rankBoxH, 18, accent, 20, 0.25);
+  fillR(ctx, rankBoxX, rankBoxY, rankBoxW, rankBoxH, 18, "rgba(255,255,255,0.85)");
+  strokeR(ctx, rankBoxX, rankBoxY, rankBoxW, rankBoxH, 18, "rgba(15,23,42,0.14)", 1);
 
-  ctx.font = "bold 14px RobotoBold";
-  ctx.fillStyle = "rgba(255,255,255,0.60)";
-  ctx.fillText("LICENSE", licBoxX + 14, licBoxY + 18);
-
-  ctx.font = "20px Roboto";
-  ctx.fillStyle = "rgba(255,255,255,0.92)";
-  ctx.fillText(licenseNo, licBoxX + 14, licBoxY + 38);
-
-  // Rank badge (far right)
-  const rankX = width - 176;
-  const rankY = 52;
-  const rankW = 96;
-  const rankH = 52;
-
-  glowRect(ctx, rankX, rankY, rankW, rankH, 16, accent, 28, 0.40);
-  fillRoundRect(ctx, rankX, rankY, rankW, rankH, 16, "rgba(255,255,255,0.10)");
-  strokeRoundRect(ctx, rankX, rankY, rankW, rankH, 16, "rgba(255,255,255,0.14)", 1);
+  // little top accent
+  ctx.save();
+  ctx.globalAlpha = 0.9;
+  fillR(ctx, rankBoxX + 10, rankBoxY + 10, 8, rankBoxH - 20, 8, accent);
+  ctx.restore();
 
   ctx.font = "bold 14px RobotoBold";
-  ctx.fillStyle = "rgba(255,255,255,0.65)";
-  ctx.fillText("RANK", rankX + 18, rankY + 18);
+  ctx.fillStyle = "rgba(15,23,42,0.65)";
+  ctx.fillText("RANK", rankBoxX + 28, rankBoxY + 24);
 
-  ctx.font = "bold 28px RobotoBold";
+  ctx.font = "bold 34px RobotoBold";
   ctx.fillStyle = accent;
-  ctx.fillText(rank, rankX + 40, rankY + 44);
+  ctx.fillText(rank, rankBoxX + 28, rankBoxY + 56);
+
+  // faint huge rank watermark
+  ctx.save();
+  ctx.globalAlpha = 0.07;
+  ctx.font = "240px RobotoBold";
+  ctx.fillStyle = accent;
+  ctx.fillText(rank, width - 260, 260);
+  ctx.restore();
 
   // ─────────────────────────────────────────
-  // Body layout
+  // License pill (left of rank)
   // ─────────────────────────────────────────
-  const leftX = 58;
-  const topY = 140;
+  const licW = 320;
+  const licH = 54;
+  const licX = rankBoxX - 18 - licW;
+  const licY = 62;
 
-  // Avatar panel
-  const avatarPanelX = leftX;
-  const avatarPanelY = topY;
-  const avatarPanelW = 300;
-  const avatarPanelH = 330;
+  fillR(ctx, licX, licY, licW, licH, 18, "rgba(255,255,255,0.85)");
+  strokeR(ctx, licX, licY, licW, licH, 18, "rgba(15,23,42,0.14)", 1);
 
-  glowRect(ctx, avatarPanelX, avatarPanelY, avatarPanelW, avatarPanelH, 26, accent, 26, 0.30);
-  fillRoundRect(ctx, avatarPanelX, avatarPanelY, avatarPanelW, avatarPanelH, 26, "rgba(0,0,0,0.35)");
-  strokeRoundRect(ctx, avatarPanelX, avatarPanelY, avatarPanelW, avatarPanelH, 26, "rgba(255,255,255,0.10)", 1);
+  ctx.save();
+  ctx.globalAlpha = 0.9;
+  fillR(ctx, licX + 10, licY + 10, 8, licH - 20, 8, accent);
+  ctx.restore();
 
-  // Avatar image clipped with rounded rect
-  const avatarX = avatarPanelX + 18;
-  const avatarY = avatarPanelY + 18;
-  const avatarW = avatarPanelW - 36;
-  const avatarH = avatarPanelH - 36;
+  ctx.font = "bold 13px RobotoBold";
+  ctx.fillStyle = "rgba(15,23,42,0.65)";
+  ctx.fillText("LICENSE", licX + 28, licY + 22);
 
-  // inner neon border
-  strokeRoundRect(ctx, avatarX - 2, avatarY - 2, avatarW + 4, avatarH + 4, 20, accent, 3);
+  ctx.font = "22px Roboto";
+  ctx.fillStyle = "#0f172a";
+  ctx.fillText(licenseNo, licX + 28, licY + 44);
+
+  // ─────────────────────────────────────────
+  // BODY LAYOUT
+  // ─────────────────────────────────────────
+  const bodyX = 54;
+  const bodyY = 150;
+  const bodyW = width - 108;
+  const bodyH = height - 210;
+
+  // Main body panel
+  fillR(ctx, bodyX, bodyY, bodyW, bodyH, 26, "rgba(255,255,255,0.70)");
+  strokeR(ctx, bodyX, bodyY, bodyW, bodyH, 26, "rgba(15,23,42,0.12)", 1);
+
+  // Left avatar panel
+  const avatarPanelX = bodyX + 22;
+  const avatarPanelY = bodyY + 22;
+  const avatarPanelW = 330;
+  const avatarPanelH = bodyH - 44;
+
+  glowR(ctx, avatarPanelX, avatarPanelY, avatarPanelW, avatarPanelH, 24, accent, 18, 0.20);
+  fillR(ctx, avatarPanelX, avatarPanelY, avatarPanelW, avatarPanelH, 24, "rgba(15,23,42,0.06)");
+  strokeR(ctx, avatarPanelX, avatarPanelY, avatarPanelW, avatarPanelH, 24, "rgba(15,23,42,0.12)", 1);
+
+  // Avatar frame
+  const avX = avatarPanelX + 18;
+  const avY = avatarPanelY + 18;
+  const avW = avatarPanelW - 36;
+  const avH = avatarPanelW - 36; // square
+
+  strokeR(ctx, avX - 3, avY - 3, avW + 6, avH + 6, 18, accent, 4);
 
   try {
     const avatar = await loadImage(user.avatar);
     ctx.save();
-    roundRect(ctx, avatarX, avatarY, avatarW, avatarH, 18);
+    roundRect(ctx, avX, avY, avW, avH, 16);
     ctx.clip();
-    ctx.drawImage(avatar, avatarX, avatarY, avatarW, avatarH);
+    ctx.drawImage(avatar, avX, avY, avW, avH);
     ctx.restore();
   } catch {
-    // fallback empty
     ctx.font = "16px Roboto";
-    ctx.fillStyle = "rgba(255,255,255,0.55)";
-    ctx.fillText("No avatar", avatarX + 12, avatarY + 28);
+    ctx.fillStyle = "rgba(15,23,42,0.55)";
+    ctx.fillText("No avatar", avX + 14, avY + 28);
   }
 
-  // Right info panel
-  const infoX = avatarPanelX + avatarPanelW + 26;
-  const infoY = topY;
-  const infoW = width - infoX - 58;
+  // Stamp + small ID note
+  drawStamp(ctx, avatarPanelX + 52, avY + avH + 26, 130, accent);
+
+  ctx.font = "bold 14px RobotoBold";
+  ctx.fillStyle = "rgba(15,23,42,0.70)";
+  ctx.fillText("VALIDATION", avatarPanelX + 22, avatarPanelY + avatarPanelH - 52);
+
+  ctx.font = "14px Roboto";
+  ctx.fillStyle = "rgba(15,23,42,0.55)";
+  ctx.fillText("Issued by Hunter Association", avatarPanelX + 22, avatarPanelY + avatarPanelH - 30);
+
+  // Right info area
+  const infoX = avatarPanelX + avatarPanelW + 22;
+  const infoY = avatarPanelY;
+  const infoW = bodyX + bodyW - infoX - 22;
   const infoH = avatarPanelH;
 
-  fillRoundRect(ctx, infoX, infoY, infoW, infoH, 26, "rgba(255,255,255,0.06)");
-  strokeRoundRect(ctx, infoX, infoY, infoW, infoH, 26, "rgba(255,255,255,0.10)", 1);
+  // Info panel
+  fillR(ctx, infoX, infoY, infoW, infoH, 24, "rgba(15,23,42,0.04)");
+  strokeR(ctx, infoX, infoY, infoW, infoH, 24, "rgba(15,23,42,0.10)", 1);
 
-  // Big faint rank watermark
-  ctx.save();
-  ctx.globalAlpha = 0.10;
-  ctx.font = "220px RobotoBold";
-  ctx.fillStyle = accent;
-  ctx.fillText(rank, infoX + infoW - 220, infoY + 240);
-  ctx.restore();
+  // Field tiles (anime clean)
+  function fieldTile(label, value, x, y, w, h) {
+    fillR(ctx, x, y, w, h, 18, "rgba(255,255,255,0.86)");
+    strokeR(ctx, x, y, w, h, 18, "rgba(15,23,42,0.12)", 1);
 
-  // Field cards
-  function fieldRow(label, value, x, y, w, h) {
-    // Glass tile
-    fillRoundRect(ctx, x, y, w, h, 18, "rgba(0,0,0,0.35)");
-    strokeRoundRect(ctx, x, y, w, h, 18, "rgba(255,255,255,0.10)", 1);
-    // Accent bar
+    // accent top strip
     ctx.save();
     ctx.globalAlpha = 0.95;
-    fillRoundRect(ctx, x + 10, y + 10, 6, h - 20, 6, accent);
+    fillR(ctx, x + 12, y + 12, w - 24, 6, 6, accent);
     ctx.restore();
 
-    // Label (bold)
-    ctx.font = "bold 16px RobotoBold";
-    ctx.fillStyle = "rgba(255,255,255,0.65)";
-    ctx.fillText(label.toUpperCase(), x + 28, y + 26);
+    // label (bold)
+    ctx.font = "bold 15px RobotoBold";
+    ctx.fillStyle = "rgba(15,23,42,0.65)";
+    ctx.fillText(label.toUpperCase(), x + 18, y + 38);
 
-    // Value (normal, auto fit)
-    const maxW = w - 56;
+    // value (normal, auto-fit)
     const v = value == null ? "" : String(value);
-    const size = fitText(ctx, v, maxW, 34, 20, "Roboto", "");
+    const maxW = w - 36;
+    const size = fitText(ctx, v, maxW, 42, 22, "Roboto");
     ctx.font = `${size}px Roboto`;
-    ctx.fillStyle = "rgba(255,255,255,0.92)";
-    ctx.fillText(v, x + 28, y + 62);
+    ctx.fillStyle = "#0f172a";
+    ctx.fillText(v, x + 18, y + 78);
   }
 
-  // Data
   const name = user?.thmUsername ?? "Unknown";
   const team = DEFAULT_TEAM;
   const ctf = DEFAULT_CTFS;
 
-  // Rows positions
-  const pad = 22;
-  const rowW = infoW - pad * 2;
-  const rowH = 86;
+  const tileW = infoW - 44;
+  const tileX = infoX + 22;
+  let curY = infoY + 22;
 
-  fieldRow("Name", name, infoX + pad, infoY + 24, rowW, rowH);
-  fieldRow("Category", category, infoX + pad, infoY + 24 + rowH + 16, rowW, rowH);
+  fieldTile("Name", name, tileX, curY, tileW, 104);
+  curY += 104 + 16;
 
-  // Team + CTF split
-  const halfGap = 16;
-  const halfW = (rowW - halfGap) / 2;
-  fieldRow("Team", team, infoX + pad, infoY + 24 + (rowH + 16) * 2, halfW, rowH);
-  fieldRow("CTF", ctf, infoX + pad + halfW + halfGap, infoY + 24 + (rowH + 16) * 2, halfW, rowH);
+  fieldTile("Category", category, tileX, curY, tileW, 104);
+  curY += 104 + 16;
 
-  // Footer tagline
+  // Split tiles row
+  const gap = 16;
+  const halfW = (tileW - gap) / 2;
+
+  fieldTile("Team", team, tileX, curY, halfW, 104);
+  fieldTile("CTF", ctf, tileX + halfW + gap, curY, halfW, 104);
+
+  // Footer
   ctx.font = "14px Roboto";
-  ctx.fillStyle = "rgba(255,255,255,0.55)";
+  ctx.fillStyle = "rgba(15,23,42,0.60)";
   ctx.fillText(
-    "Certified • Verified • Encrypted — Generated by rank-bot",
+    "This card certifies the holder as a verified hunter • Generated by rank-bot",
     64,
     height - 44
   );

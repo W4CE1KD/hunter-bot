@@ -287,10 +287,10 @@ async function generateCard(user) {
 
   const theme = {
     black: "#000000",
-    borderStrong: "rgba(128,156,190,0.42)",
-    borderSoft: "rgba(128,156,190,0.24)",
+    borderStrong: "rgba(128,156,190,0.32)",
+    borderSoft: "rgba(128,156,190,0.18)",
     textPrimary: "rgba(240,247,255,0.96)",
-    textSecondary: "rgba(170,188,208,0.78)",
+    textSecondary: "rgba(170,188,208,0.72)",
     textMuted: "rgba(126,145,168,0.62)",
   };
 
@@ -298,13 +298,13 @@ async function generateCard(user) {
   ctx.fillRect(0, 0, width, height);
 
   const rightGlow = ctx.createRadialGradient(width * 0.86, height * 0.12, 0, width * 0.86, height * 0.12, 360);
-  rightGlow.addColorStop(0, hexToRgba(accent, 0.30));
+  rightGlow.addColorStop(0, hexToRgba(accent, 0.24));
   rightGlow.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = rightGlow;
   ctx.fillRect(0, 0, width, height);
 
   const leftGlow = ctx.createRadialGradient(width * 0.12, height * 0.80, 0, width * 0.12, height * 0.80, 320);
-  leftGlow.addColorStop(0, hexToRgba(accent, 0.12));
+  leftGlow.addColorStop(0, hexToRgba(accent, 0.09));
   leftGlow.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = leftGlow;
   ctx.fillRect(0, 0, width, height);
@@ -312,7 +312,7 @@ async function generateCard(user) {
   const beam = ctx.createLinearGradient(0, 0, width, height);
   beam.addColorStop(0, "rgba(0,0,0,0)");
   beam.addColorStop(0.48, "rgba(0,0,0,0)");
-  beam.addColorStop(0.60, hexToRgba(accent, 0.07));
+  beam.addColorStop(0.60, hexToRgba(accent, 0.045));
   beam.addColorStop(0.76, "rgba(0,0,0,0)");
   beam.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = beam;
@@ -338,20 +338,24 @@ async function generateCard(user) {
 
   strokeRoundRect(ctx, cardX, cardY, cardW, cardH, 30, theme.borderStrong, 1.2);
   strokeRoundRect(ctx, cardX + 8, cardY + 8, cardW - 16, cardH - 16, 24, theme.borderSoft, 1);
+  const sheen = ctx.createLinearGradient(cardX, cardY, cardX, cardY + 180);
+  sheen.addColorStop(0, "rgba(255,255,255,0.06)");
+  sheen.addColorStop(1, "rgba(255,255,255,0)");
+  fillRoundRect(ctx, cardX + 1, cardY + 1, cardW - 2, 170, 28, sheen);
 
   const contentX = cardX + 36;
   const headerY = cardY + 42;
   const headerBottom = cardY + 128;
 
-  ctx.font = "bold 52px RobotoBold";
+  ctx.font = "bold 46px RobotoBold";
   ctx.fillStyle = theme.textPrimary;
   ctx.fillText("HUNTER LICENSE", contentX, headerY + 26);
 
-  ctx.font = "28px Roboto";
+  ctx.font = "24px Roboto";
   ctx.fillStyle = theme.textSecondary;
   ctx.fillText("Secure Identity Card", contentX, headerY + 64);
 
-  ctx.font = "14px Roboto";
+  ctx.font = "13px Roboto";
   ctx.fillStyle = theme.textMuted;
   ctx.fillText("Access Tier Credential / Zero Trust Network", contentX, headerY + 92);
 
@@ -360,9 +364,13 @@ async function generateCard(user) {
   const chipX = cardX + cardW - 36 - chipW;
   const chipY = cardY + 40;
 
-  fillRoundRect(ctx, chipX, chipY, chipW, chipH, 16, theme.black);
+  fillRoundRect(ctx, chipX, chipY, chipW, chipH, 16, "rgba(8,12,18,0.72)");
+  const chipGlow = ctx.createLinearGradient(chipX, chipY, chipX + chipW, chipY);
+  chipGlow.addColorStop(0, hexToRgba(accent, 0.26));
+  chipGlow.addColorStop(1, "rgba(0,0,0,0)");
+  fillRoundRect(ctx, chipX, chipY, chipW, chipH, 16, chipGlow);
   strokeRoundRect(ctx, chipX, chipY, chipW, chipH, 16, hexToRgba(accent, 0.68), 1.2);
-  drawCornerBrackets(ctx, chipX + 4, chipY + 4, chipW - 8, chipH - 8, 10, hexToRgba(accent, 0.52), 1);
+  drawCornerBrackets(ctx, chipX + 4, chipY + 4, chipW - 8, chipH - 8, 8, hexToRgba(accent, 0.48), 1);
   ctx.textAlign = "center";
   ctx.font = "bold 34px RobotoBold";
   ctx.fillStyle = accent;
@@ -374,7 +382,7 @@ async function generateCard(user) {
   ctx.font = "bold 12px RobotoBold";
   ctx.fillStyle = theme.textSecondary;
   ctx.fillText("LICENSE", licenseRight, chipY + 14);
-  ctx.font = "34px RobotoBold";
+  ctx.font = "30px RobotoBold";
   ctx.fillStyle = theme.textPrimary;
   ctx.fillText(licenseNo, licenseRight, chipY + 50);
   ctx.textAlign = "left";
@@ -389,11 +397,11 @@ async function generateCard(user) {
 
   const accentRule = ctx.createLinearGradient(cardX + 40, 0, cardX + cardW - 40, 0);
   accentRule.addColorStop(0, "rgba(0,0,0,0)");
-  accentRule.addColorStop(0.5, hexToRgba(accent, 0.40));
+  accentRule.addColorStop(0.5, hexToRgba(accent, 0.30));
   accentRule.addColorStop(1, "rgba(0,0,0,0)");
   drawDivider(ctx, cardX + 24, ruleY + 1, cardW - 48, accentRule);
 
-  const bodyY = headerBottom + 22;
+  const bodyY = headerBottom + 28;
   const bodyH = cardY + cardH - bodyY - 24;
   const leftX = cardX + 24;
   const leftW = 336;
@@ -401,7 +409,6 @@ async function generateCard(user) {
 
   fillRoundRect(ctx, leftX, bodyY, leftW, leftH, 24, theme.black);
   strokeRoundRect(ctx, leftX, bodyY, leftW, leftH, 24, theme.borderStrong, 1.2);
-  drawCornerBrackets(ctx, leftX + 6, bodyY + 6, leftW - 12, leftH - 12, 18, hexToRgba(accent, 0.45), 1.3);
 
   const avatarX = leftX + 18;
   const avatarY = bodyY + 18;
@@ -452,7 +459,6 @@ async function generateCard(user) {
 
   fillRoundRect(ctx, infoX, infoY, infoW, infoH, 24, theme.black);
   strokeRoundRect(ctx, infoX, infoY, infoW, infoH, 24, theme.borderStrong, 1.2);
-  drawCornerBrackets(ctx, infoX + 6, infoY + 6, infoW - 12, infoH - 12, 20, hexToRgba(accent, 0.42), 1.3);
 
   ctx.save();
   ctx.globalAlpha = 0.12;
@@ -469,8 +475,8 @@ async function generateCard(user) {
   const catH = 124;
   fillRoundRect(ctx, infoTextX, catY, infoTextW, catH, 16, theme.black);
   const catOverlay = ctx.createLinearGradient(infoTextX, 0, infoTextX + infoTextW, 0);
-  catOverlay.addColorStop(0, hexToRgba(accent, 0.22));
-  catOverlay.addColorStop(0.65, hexToRgba(accent, 0.07));
+  catOverlay.addColorStop(0, hexToRgba(accent, 0.18));
+  catOverlay.addColorStop(0.65, hexToRgba(accent, 0.05));
   catOverlay.addColorStop(1, "rgba(0,0,0,0)");
   fillRoundRect(ctx, infoTextX, catY, infoTextW, catH, 16, catOverlay);
   strokeRoundRect(ctx, infoTextX, catY, infoTextW, catH, 16, "rgba(124,151,184,0.42)", 1.1);
@@ -479,7 +485,7 @@ async function generateCard(user) {
   ctx.font = "bold 12px RobotoBold";
   ctx.fillStyle = theme.textSecondary;
   ctx.fillText("CATEGORY", infoTextX + 28, catY + 24);
-  const categorySize = fitText(ctx, category, infoTextW - 56, 58, 24, "RobotoBold", "bold");
+  const categorySize = fitText(ctx, category, infoTextW - 56, 54, 24, "RobotoBold", "bold");
   ctx.font = `bold ${categorySize}px RobotoBold`;
   ctx.fillStyle = theme.textPrimary;
   ctx.fillText(category, infoTextX + 28, catY + 86);
@@ -494,7 +500,7 @@ async function generateCard(user) {
   ctx.fillStyle = theme.textSecondary;
   ctx.fillText("POINTS", infoTextX + 18, pointsY + 28);
   const pointsText = points.toLocaleString("en-US");
-  const pointsSize = fitText(ctx, pointsText, infoTextW - 36, 86, 34, "RobotoBold", "bold");
+  const pointsSize = fitText(ctx, pointsText, infoTextW - 36, 80, 34, "RobotoBold", "bold");
   ctx.font = `bold ${pointsSize}px RobotoBold`;
   ctx.fillStyle = theme.textPrimary;
   ctx.fillText(pointsText, infoTextX + 18, pointsY + 117);

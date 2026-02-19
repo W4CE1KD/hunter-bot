@@ -1,4 +1,4 @@
-const { createCanvas, loadImage } = require("canvas");
+const { createCanvas } = require("canvas");
 
 async function generateCard(user, rank) {
 
@@ -9,25 +9,23 @@ async function generateCard(user, rank) {
   ctx.fillStyle = "#0f172a";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // avatar
-  try {
-    if (user.avatar) {
-      const avatar = await loadImage(user.avatar);
-      ctx.drawImage(avatar, 30, 75, 150, 150);
-    }
-  } catch {}
-
-  // text
+  // title
   ctx.fillStyle = "#ffffff";
+  ctx.font = "32px sans-serif";
+  ctx.fillText("TRYHACKME HUNTER LICENSE", 220, 60);
+
+  // username
   ctx.font = "28px sans-serif";
-  ctx.fillText(user.thmUsername, 220, 100);
+  ctx.fillText(`User: ${user.thmUsername}`, 220, 120);
 
-  ctx.font = "22px sans-serif";
-  ctx.fillText(`Points: ${user.points}`, 220, 150);
+  // points
+  ctx.font = "24px sans-serif";
+  ctx.fillText(`Points: ${user.points}`, 220, 170);
 
+  // rank
   ctx.fillStyle = "#00ff99";
-  ctx.font = "30px sans-serif";
-  ctx.fillText(rank, 220, 210);
+  ctx.font = "34px sans-serif";
+  ctx.fillText(rank, 220, 230);
 
   return canvas.toBuffer();
 }
